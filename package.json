@@ -1,0 +1,48 @@
+{
+  "name": "sistema-tickets",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "backup": "node scripts/backup-sqlite.js",
+    "check-sqlite": "node scripts/check-sqlite-tables.js",
+    "check-data": "node scripts/check-sqlite-data.js",
+    "migrate": "node scripts/migrate-to-postgres.js",
+    "migrate:safe": "node scripts/migrate-to-postgres-safe.js",
+    "migrate:simple": "node scripts/migrate-simple.js",
+    "fix-postgres": "node scripts/fix-postgres-enums.js",
+    "postgres:test": "node scripts/test-postgres-connection.js",
+    "postgres:config": "node -e \"console.log(require('./config/database').development)\"",
+    "generate-secret": "node scripts/generate-secret-key.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.16.3",
+    "resend": "^6.0.1",
+    "sanitize-html": "^2.12.1",
+    "sequelize": "^6.37.7",
+    "sqlite3": "^5.1.7",
+    "winston": "^3.11.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "overrides": {
+    "xlsx": "^0.18.5"
+  }
+}
