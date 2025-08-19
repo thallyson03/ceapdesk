@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Perfil (Admin)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .hero-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .hero-section .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .user-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            border: none;
+            margin-bottom: 1rem;
+        }
+        
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .user-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .user-details h5 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .user-details p {
+            margin-bottom: 0.25rem;
+            color: #6c757d;
+        }
+        
+        .user-details small {
+            color: #95a5a6;
+        }
+        
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .role-badge.user {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .role-badge.admin {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
+        
+        .edit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .back-btn {
+            background: #6c757d;
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stats-label {
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            background: white;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .loading i {
+            font-size: 2rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            border: none;
+        }
+        
+        .modal-title {
+            font-weight: 600;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            font-weight: 500;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="fas fa-users-cog me-3"></i>Gestão de Usuários</h1>
+                    <p class="subtitle mb-0">Gerencie todos os usuários do sistema de forma eficiente</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span id="user-info" class="text-white fw-bold fs-5">
+                        <i class="fas fa-user-circle me-2"></i>Olá, Admin!
+                    </span>
+                    <button id="logout-btn" class="btn logout-btn">
+                        <i class="fas fa-sign-out-alt me-2"></i>Sair
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/dashboard.html" class="btn back-btn">
+                <i class="fas fa-arrow-left me-2"></i>Voltar para o Dashboard
+            </a>
+        </div>
+
+        <!-- Cards de Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                    <div class="stats-number" id="total-users">-</div>
+                    <div class="stats-label">Total de Usuários</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-user-tie fa-2x text-warning mb-3"></i>
+                    <div class="stats-number" id="admin-users">-</div>
+                    <div class="stats-label">Administradores</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-user fa-2x text-info mb-3"></i>
+                    <div class="stats-number" id="regular-users">-</div>
+                    <div class="stats-label">Usuários Regulares</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Usuários -->
+        <div id="users-list">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <h5>Carregando usuários...</h5>
+                <p class="text-muted">Aguarde enquanto buscamos as informações</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Edição -->
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">
+                        <i class="fas fa-edit me-2"></i>Editar Usuário
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="edit-user-form">
+                        <input type="hidden" id="edit-user-id">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-username" class="form-label">
+                                        <i class="fas fa-user me-2"></i>Nome de Usuário
+                                    </label>
+                                    <input type="text" class="form-control" id="edit-username" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-setor" class="form-label">
+                                        <i class="fas fa-building me-2"></i>Setor
+                                    </label>
+                                    <input type="text" class="form-control" id="edit-setor" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-role" class="form-label">
+                                        <i class="fas fa-user-tag me-2"></i>Cargo
+                                    </label>
+                                    <select id="edit-role" class="form-select" required>
+                                        <option value="user">Usuário</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="edit-password" class="form-label">
+                                        <i class="fas fa-lock me-2"></i>Nova Senha (opcional)
+                                    </label>
+                                    <input type="password" class="form-control" id="edit-password" placeholder="Deixe em branco para manter a atual">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="edit-status-message" class="mt-3"></div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Fechar
+                    </button>
+                    <button type="button" class="btn btn-primary" id="save-user-changes-btn">
+                        <i class="fas fa-save me-2"></i>Salvar Alterações
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.role !== 'admin') {
+                window.location.href = '/dashboard.html';
+                return;
+            }
+
+            const userInfo = document.getElementById('user-info');
+            if (payload) {
+                userInfo.innerHTML = `<i class="fas fa-user-circle me-2"></i>Olá, ${payload.username}!`;
+            }
+
+            fetchUsers();
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+
+        const fetchUsers = async () => {
+            const usersList = document.getElementById('users-list');
+            try {
+                const response = await fetch('/api/v1/users', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar usuários.');
+                }
+                const users = await response.json();
+                renderUsers(users);
+                updateStats(users);
+            } catch (error) {
+                console.error('Erro ao buscar usuários:', error);
+                usersList.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Erro ao carregar a lista de usuários.
+                    </div>
+                `;
+            }
+        };
+
+        const updateStats = (users) => {
+            const totalUsers = users.length;
+            const adminUsers = users.filter(user => user.role === 'admin').length;
+            const regularUsers = users.filter(user => user.role === 'user').length;
+
+            document.getElementById('total-users').textContent = totalUsers;
+            document.getElementById('admin-users').textContent = adminUsers;
+            document.getElementById('regular-users').textContent = regularUsers;
+        };
+
+        const renderUsers = (users) => {
+            const usersList = document.getElementById('users-list');
+            
+            if (users.length === 0) {
+                usersList.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h5>Nenhum usuário encontrado</h5>
+                        <p>Comece criando o primeiro usuário do sistema</p>
+                    </div>
+                `;
+                return;
+            }
+
+            usersList.innerHTML = '';
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-card';
+                userItem.innerHTML = `
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    ${user.username.charAt(0).toUpperCase()}
+                                </div>
+                                <div class="user-details">
+                                    <h5>${user.username}</h5>
+                                    <p><i class="fas fa-building me-2"></i><strong>Setor:</strong> ${user.setor}</p>
+                                    <small><i class="fas fa-user-tag me-2"></i><strong>Cargo:</strong> 
+                                        <span class="role-badge ${user.role}">${user.role}</span>
+                                    </small>
+                                </div>
+                            </div>
+                            <button class="btn edit-btn" data-user-id="${user.id}">
+                                <i class="fas fa-edit me-2"></i>Editar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                usersList.appendChild(userItem);
+            });
+
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const userId = e.target.closest('.edit-btn').getAttribute('data-user-id');
+                    const userToEdit = users.find(u => u.id == userId);
+                    if (userToEdit) {
+                        document.getElementById('edit-user-id').value = userToEdit.id;
+                        document.getElementById('edit-username').value = userToEdit.username;
+                        document.getElementById('edit-setor').value = userToEdit.setor;
+                        document.getElementById('edit-role').value = userToEdit.role;
+                        document.getElementById('edit-password').value = '';
+                        const editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                        editUserModal.show();
+                    }
+                });
+            });
+        };
+
+        document.getElementById('save-user-changes-btn').addEventListener('click', async () => {
+            const userId = document.getElementById('edit-user-id').value;
+            const username = document.getElementById('edit-username').value;
+            const setor = document.getElementById('edit-setor').value;
+            const role = document.getElementById('edit-role').value;
+            const password = document.getElementById('edit-password').value;
+            const statusMessage = document.getElementById('edit-status-message');
+            statusMessage.innerHTML = '';
+
+            // Buscar o ID do setor baseado no nome
+            let setorIds = [];
+            if (setor && setor !== 'Geral') {
+                try {
+                    const setoresResponse = await fetch('/api/v1/setores', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (setoresResponse.ok) {
+                        const setores = await setoresResponse.json();
+                        const setorEncontrado = setores.find(s => s.nome === setor);
+                        if (setorEncontrado) {
+                            setorIds = [setorEncontrado.id];
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar setores:', error);
+                }
+            }
+
+            const body = { username, role, setorIds };
+            if (password) {
+                body.password = password;
+            }
+
+            try {
+                const response = await fetch(`/api/v1/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.ok) {
+                    statusMessage.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Usuário atualizado com sucesso!
+                        </div>
+                    `;
+                    // Recarregar a lista de usuários após a edição
+                    fetchUsers();
+                    // Opcionalmente, fechar o modal após um pequeno delay
+                    setTimeout(() => {
+                        const editUserModal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                        editUserModal.hide();
+                    }, 1500);
+                } else {
+                    const error = await response.json();
+                    statusMessage.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Erro ao salvar: ${error.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Erro ao salvar alterações:', error);
+                statusMessage.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Erro de conexão.
+                    </div>
+                `;
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

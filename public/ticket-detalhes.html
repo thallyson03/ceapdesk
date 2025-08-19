@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do Ticket</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .ticket-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .detail-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: none;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .detail-card .card-header {
+            border-radius: 15px 15px 0 0 !important;
+            border: none;
+            font-weight: 600;
+            border-bottom: none;
+            padding: 1.25rem 1.5rem;
+        }
+        .detail-card .card-body {
+            padding: 1.5rem;
+        }
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 1rem;
+        }
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.5em 1em;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn {
+            border-radius: 10px;
+            font-weight: 500;
+            padding: 0.5rem 1.5rem;
+        }
+        .anotacao-item {
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background: #ffffff;
+            transition: all 0.3s ease;
+        }
+        .anotacao-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .historico-item {
+            padding: 1.25rem;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        
+        .historico-item:hover {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .historico-item:last-child {
+            border-bottom: none;
+        }
+        
+        .historico-item .badge {
+            font-size: 0.8rem;
+            padding: 0.5em 0.8em;
+        }
+        .historico-item-content {
+            position: relative;
+        }
+
+        /* Estilos para SLA */
+        .sla-info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .sla-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .sla-status-badge .badge {
+            font-size: 1rem;
+            padding: 0.6em 1em;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+
+        .sla-icon {
+            font-size: 2rem;
+            opacity: 0.8;
+        }
+
+        .sla-icon .fa-check-circle {
+            color: #28a745;
+        }
+
+        .sla-icon .fa-exclamation-triangle {
+            color: #ffc107;
+        }
+
+        .sla-icon .fa-times-circle {
+            color: #dc3545;
+        }
+
+        .sla-details {
+            margin-bottom: 20px;
+        }
+
+        .sla-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .sla-item i {
+            margin-right: 12px;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sla-item span {
+            font-size: 0.95rem;
+        }
+
+        .sla-progress {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .progress-percentage {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .progress {
+            height: 12px;
+            border-radius: 6px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            transition: width 0.6s ease;
+            border-radius: 6px;
+        }
+
+        .sla-message {
+            margin-top: 15px;
+        }
+
+        .alert-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            border-radius: 8px;
+            margin-bottom: 0;
+        }
+
+        .sla-info-empty {
+            text-align: center;
+            padding: 30px;
+            color: #6c757d;
+        }
+
+        .sla-info-empty i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Estilos para layout compacto */
+        .compact-card {
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .compact-card .card-header {
+            border-bottom: 1px solid rgba(0,0,0,0.125);
+        }
+
+        .compact-card .card-body {
+            padding: 0.75rem;
+        }
+
+        /* Anotações compactas */
+        .anotacoes-compact {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .anotacao-item-compact {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #17a2b8;
+        }
+
+        .anotacao-item-compact:last-child {
+            margin-bottom: 0;
+        }
+
+        .anotacao-header-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .anotacao-autor-compact {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+
+        .anotacao-data-compact {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .anotacao-conteudo-compact {
+            font-size: 0.85rem;
+            color: #212529;
+            margin: 0;
+        }
+
+        /* Histórico compacto */
+        .historico-compact {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .historico-item-compact {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #6c757d;
+        }
+
+        .historico-item-compact:last-child {
+            margin-bottom: 0;
+        }
+
+        .historico-header-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .historico-alteracao-compact {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+
+        .historico-data-compact {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+
+        .historico-usuario-compact {
+            font-size: 0.8rem;
+            color: #17a2b8;
+        }
+
+        /* SLA compacto */
+        .sla-info-card-compact {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .sla-header-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .sla-status-badge-compact .badge {
+            font-size: 0.8rem;
+            padding: 0.4em 0.8em;
+            border-radius: 15px;
+        }
+
+        .sla-icon-compact {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .sla-details-compact {
+            margin-bottom: 0.75rem;
+        }
+
+        .sla-item-compact {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.4rem;
+            background: white;
+            border-radius: 4px;
+            border-left: 3px solid #007bff;
+            font-size: 0.8rem;
+        }
+
+        .sla-item-compact i {
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+            width: 16px;
+            text-align: center;
+        }
+
+        .sla-progress-compact {
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-label-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #495057;
+        }
+
+        .progress-compact {
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        .sla-message-compact {
+            margin-top: 0.75rem;
+        }
+
+        .alert-sm-compact {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            margin-bottom: 0;
+        }
+
+        /* Responsividade para layout compacto */
+        @media (max-width: 768px) {
+            .compact-card .card-body {
+                padding: 0.5rem;
+            }
+            
+            .sla-item-compact {
+                font-size: 0.75rem;
+            }
+            
+            .anotacoes-compact,
+            .historico-compact {
+                max-height: 150px;
+            }
+        }
+        
+        .historico-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        
+        .historico-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+        }
+        
+        .historico-icon i {
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .historico-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .historico-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .historico-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .historico-user {
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .historico-date {
+            color: #6c757d;
+            background: #f8f9fa;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            border: 1px solid #e9ecef;
+        }
+        
+        /* Estilos para anotações */
+        .anotacao-item {
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            background: #ffffff;
+            transition: all 0.3s ease;
+        }
+        
+        .anotacao-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        /* Estilos para anotações melhoradas */
+        .anotacao-content {
+            position: relative;
+        }
+        
+        .anotacao-header {
+            margin-bottom: 1rem;
+        }
+        
+        .anotacao-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .anotacao-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(23,162,184,0.3);
+        }
+        
+        .anotacao-avatar i {
+            color: white;
+            font-size: 0.9rem;
+        }
+        
+        .anotacao-author-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .anotacao-author-name {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+        
+        .anotacao-date {
+            color: #6c757d;
+            font-size: 0.85rem;
+        }
+        
+        .anotacao-text {
+            color: #495057;
+            line-height: 1.6;
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .historico-meta {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .historico-header {
+                gap: 0.75rem;
+            }
+            
+            .historico-icon {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        .back-btn {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            border: none;
+            border-radius: 10px;
+        }
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        /* Estado vazio do histórico */
+        .historico-empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        }
+        
+        .historico-empty-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .historico-empty-icon i {
+            font-size: 2rem;
+            color: #6c757d;
+        }
+        
+        .historico-empty-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .historico-empty-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        /* Estado vazio das anotações */
+        .anotacoes-empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .anotacoes-empty-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .anotacoes-empty-icon i {
+            font-size: 1.5rem;
+            color: #6c757d;
+        }
+        
+        .anotacoes-empty-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .anotacoes-empty-text {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/dashboard.html" class="btn back-btn text-white">
+                <i class="fas fa-arrow-left me-2"></i>Voltar para o Dashboard
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <span id="user-info" class="me-2 fw-bold text-primary"></span>
+                <button id="logout-btn" class="btn btn-danger">
+                    <i class="fas fa-sign-out-alt me-1"></i>Sair
+                </button>
+            </div>
+        </div>
+
+        <div class="ticket-header">
+            <h1 class="mb-2" id="ticket-titulo"></h1>
+            <p class="mb-0 opacity-75">
+                <i class="fas fa-info-circle me-2"></i>Detalhes completos do ticket
+            </p>
+        </div>
+        
+        <div id="ticket-container">
+            <!-- Layout compacto em uma tela só -->
+            <div class="row g-3">
+                <!-- Coluna principal - Detalhes e SLA -->
+                <div class="col-lg-6">
+                    <!-- Card de detalhes compacto -->
+                    <div class="card detail-card compact-card">
+                        <div class="card-header bg-primary text-white py-2">
+                            <h6 class="mb-0">
+                                <i class="fas fa-ticket-alt me-2"></i>Detalhes do Ticket
+                            </h6>
+                        </div>
+                        <div class="card-body py-2">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <small class="text-muted">Status:</small>
+                                    <div id="ticket-status"></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Prioridade:</small>
+                                    <div id="ticket-prioridade"></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Setor:</small>
+                                    <div id="ticket-setor"></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Responsável:</small>
+                                    <div id="ticket-responsavel"></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Criado por:</small>
+                                    <div id="ticket-criador"></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Data:</small>
+                                    <div id="ticket-data-criacao"></div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">Descrição:</small>
+                                <p class="card-text mb-0 small" id="ticket-descricao"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card de SLA compacto -->
+                    <div class="card detail-card compact-card">
+                        <div class="card-header bg-warning text-dark py-2">
+                            <h6 class="mb-0">
+                                <i class="fas fa-clock me-2"></i>SLA
+                            </h6>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="sla-container">
+                                <div class="text-center py-2">
+                                    <i class="fas fa-spinner fa-spin text-muted"></i>
+                                    <small class="text-muted">Carregando...</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulário de atualização compacto -->
+                    <div class="card detail-card compact-card" id="form-update">
+                        <div class="card-header bg-success text-white py-2">
+                            <h6 class="mb-0">
+                                <i class="fas fa-edit me-2"></i>Atualizar Ticket
+                            </h6>
+                        </div>
+                        <div class="card-body py-2">
+                            <form>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="status-update" class="form-label small">Status</label>
+                                        <select id="status-update" class="form-select form-select-sm">
+                                            <option value="aberto">Aberto</option>
+                                            <option value="em progresso">Em Progresso</option>
+                                            <option value="fechado">Fechado</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="prioridade-update" class="form-label small">Prioridade</label>
+                                        <select id="prioridade-update" class="form-select form-select-sm">
+                                            <option value="baixa">Baixa</option>
+                                            <option value="media">Média</option>
+                                            <option value="alta">Alta</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="setor-update" class="form-label small">Setor</label>
+                                        <select id="setor-update" class="form-select form-select-sm"></select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="responsavel-update" class="form-label small">Responsável</label>
+                                        <select id="responsavel-update" class="form-select form-select-sm"></select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm mt-2">Salvar</button>
+                            </form>
+                            <div id="status-message" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna lateral - Anotações e Histórico -->
+                <div class="col-lg-6">
+                    <!-- Anotações compactas -->
+                    <div class="card detail-card compact-card">
+                        <div class="card-header bg-info text-white py-2">
+                            <h6 class="mb-0">
+                                <i class="fas fa-comments me-2"></i>Anotações
+                            </h6>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="anotacoes-container" class="anotacoes-compact mb-2">
+                            </div>
+                            <form id="add-anotacao-form">
+                                <div class="input-group input-group-sm">
+                                    <textarea id="anotacao-text" class="form-control" rows="2" placeholder="Adicionar anotação..."></textarea>
+                                    <button type="submit" class="btn btn-success btn-sm">+</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Histórico compacto -->
+                    <div class="card detail-card compact-card">
+                        <div class="card-header bg-secondary text-white py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>Histórico
+                                </h6>
+                                <span id="historico-count" class="badge bg-light text-dark small">0</span>
+                            </div>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="historico-container" class="historico-compact">
+                                <div class="text-center py-2">
+                                    <i class="fas fa-spinner fa-spin text-muted"></i>
+                                    <small class="text-muted">Carregando...</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+        
+            const urlParams = new URLSearchParams(window.location.search);
+            const ticketId = urlParams.get('id');
+        
+            if (!ticketId) {
+                const ticketContainer = document.getElementById('ticket-container');
+                if (ticketContainer) {
+                    ticketContainer.innerHTML = '<p class="alert alert-danger">ID do ticket não especificado.</p>';
+                }
+                return;
+            }
+        
+            const ticketTitulo = document.getElementById('ticket-titulo');
+            const ticketDescricao = document.getElementById('ticket-descricao');
+            const ticketStatus = document.getElementById('ticket-status');
+            const ticketPrioridade = document.getElementById('ticket-prioridade');
+            const ticketSetor = document.getElementById('ticket-setor');
+            const ticketResponsavel = document.getElementById('ticket-responsavel');
+            const ticketCriador = document.getElementById('ticket-criador');
+            const ticketDataCriacao = document.getElementById('ticket-data-criacao');
+            const historicoContainer = document.getElementById('historico-container');
+            const formUpdate = document.getElementById('form-update');
+            const statusSelect = document.getElementById('status-update');
+            const prioridadeSelect = document.getElementById('prioridade-update');
+            const setorSelect = document.getElementById('setor-update');
+            const responsavelSelect = document.getElementById('responsavel-update');
+            const statusMessage = document.getElementById('status-message');
+            
+            const anotacoesContainer = document.getElementById('anotacoes-container');
+            const addAnotacaoForm = document.getElementById('add-anotacao-form');
+            const anotacaoText = document.getElementById('anotacao-text');
+        
+            const userInfo = document.getElementById('user-info');
+            const logoutBtn = document.getElementById('logout-btn');
+        
+            const parseJwt = (token) => {
+                try {
+                    return JSON.parse(atob(token.split('.')[1]));
+                } catch (e) {
+                    return null;
+                }
+            };
+        
+            let user;
+            let userRole;
+            try {
+                user = parseJwt(token);
+                userRole = user ? user.role : null;
+            } catch (e) {
+                console.error('Erro ao decodificar token:', e);
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return;
+            }
+        
+                         if (user) {
+                 userInfo.innerHTML = `<i class="fas fa-user me-1"></i>Olá, ${user.username}!`;
+                 // Usuários comuns podem atualizar tickets, mas não podem alterar o setor responsável
+                 if (user.role !== 'admin') {
+                     // Esconder apenas o campo de setor responsável para usuários comuns
+                     const setorField = document.querySelector('.col-md-6:has(#setor-update)');
+                     if (setorField) {
+                         setorField.style.display = 'none';
+                     }
+                 }
+                 
+                 // Mostrar o formulário de atualização para todos os usuários
+                 if (formUpdate) {
+                     formUpdate.style.display = 'block';
+                 }
+             }
+            
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            });
+        
+            const getStatusBadgeClass = (status) => {
+                switch (status) {
+                    case 'aberto': return 'bg-danger';
+                    case 'em progresso': return 'bg-warning text-dark';
+                    case 'fechado': return 'bg-success';
+                    default: return 'bg-secondary';
+                }
+            };
+            
+            const getPriorityBadgeClass = (prioridade) => {
+                switch (prioridade) {
+                    case 'baixa': return 'bg-success';
+                    case 'media': return 'bg-warning text-dark';
+                    case 'alta': return 'bg-danger';
+                    default: return 'bg-secondary';
+                }
+            };
+
+            const getSLABadgeClass = (statusSLA) => {
+                switch (statusSLA) {
+                    case 'dentro_prazo': return 'bg-success';
+                    case 'proximo_vencimento': return 'bg-warning text-dark';
+                    case 'vencido': return 'bg-danger';
+                    default: return 'bg-secondary';
+                }
+            };
+
+            const getSLABadgeText = (statusSLA) => {
+                switch (statusSLA) {
+                    case 'dentro_prazo': return 'Dentro do Prazo';
+                    case 'proximo_vencimento': return 'Próximo Vencimento';
+                    case 'vencido': return 'SLA Vencido';
+                    default: return 'SLA';
+                }
+            };
+
+            // Função para renderizar informações de SLA de forma compacta
+            const renderSLAInfo = (ticket) => {
+                const slaContainer = document.getElementById('sla-container');
+                if (!slaContainer) return;
+
+                if (!ticket.statusSLA) {
+                    slaContainer.innerHTML = `
+                        <div class="text-center">
+                            <i class="fas fa-info-circle text-muted"></i>
+                            <small class="text-muted d-block">Nenhuma informação de SLA</small>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const hoje = new Date();
+                const dataLimite = ticket.dataLimiteSLA ? new Date(ticket.dataLimiteSLA) : null;
+                let diasRestantes = null;
+                let progresso = null;
+
+                if (dataLimite) {
+                    const diffTime = dataLimite - hoje;
+                    diasRestantes = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    if (ticket.diasSLA) {
+                        const diasPassados = ticket.diasSLA - diasRestantes;
+                        progresso = Math.max(0, Math.min(100, (diasPassados / ticket.diasSLA) * 100));
+                    }
+                }
+
+                const slaHTML = `
+                    <div class="sla-info-card-compact">
+                        <div class="sla-header-compact">
+                            <div class="sla-status-badge-compact">
+                                <span class="badge ${getSLABadgeClass(ticket.statusSLA)}">
+                                    <i class="fas fa-clock me-1"></i>${getSLABadgeText(ticket.statusSLA)}
+                                </span>
+                            </div>
+                            <div class="sla-icon-compact">
+                                <i class="fas ${getSLAIcon(ticket.statusSLA)}"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="sla-details-compact">
+                            ${ticket.diasSLA ? `
+                                <div class="sla-item-compact">
+                                    <i class="fas fa-calendar-day text-primary"></i>
+                                    <span><strong>SLA:</strong> ${ticket.diasSLA} dias</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${dataLimite ? `
+                                <div class="sla-item-compact">
+                                    <i class="fas fa-calendar-alt text-info"></i>
+                                    <span><strong>Limite:</strong> ${dataLimite.toLocaleDateString('pt-BR')}</span>
+                                </div>
+                            ` : ''}
+                            
+                            ${diasRestantes !== null ? `
+                                <div class="sla-item-compact">
+                                    <i class="fas fa-hourglass-half text-warning"></i>
+                                    <span><strong>Restante:</strong> 
+                                        <span class="${diasRestantes < 0 ? 'text-danger' : diasRestantes <= 1 ? 'text-warning' : 'text-success'}">
+                                            ${diasRestantes < 0 ? Math.abs(diasRestantes) + ' dias atrasado' : diasRestantes + ' dias'}
+                                        </span>
+                                    </span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${progresso !== null ? `
+                            <div class="sla-progress-compact">
+                                <div class="progress-label-compact">
+                                    <span>Progresso</span>
+                                    <span>${Math.round(progresso)}%</span>
+                                </div>
+                                <div class="progress progress-compact">
+                                    <div class="progress-bar ${getProgressBarClass(ticket.statusSLA)}" 
+                                         style="width: ${progresso}%" 
+                                         role="progressbar" 
+                                         aria-valuenow="${progresso}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="sla-message-compact">
+                            ${getSLAMessageCompact(ticket.statusSLA, diasRestantes)}
+                        </div>
+                    </div>
+                `;
+
+                slaContainer.innerHTML = slaHTML;
+            };
+
+            // Função para obter ícone do SLA
+            const getSLAIcon = (statusSLA) => {
+                switch (statusSLA) {
+                    case 'dentro_prazo': return 'fa-check-circle';
+                    case 'proximo_vencimento': return 'fa-exclamation-triangle';
+                    case 'vencido': return 'fa-times-circle';
+                    default: return 'fa-clock';
+                }
+            };
+
+            // Função para obter classe da barra de progresso
+            const getProgressBarClass = (statusSLA) => {
+                switch (statusSLA) {
+                    case 'dentro_prazo': return 'bg-success';
+                    case 'proximo_vencimento': return 'bg-warning';
+                    case 'vencido': return 'bg-danger';
+                    default: return 'bg-secondary';
+                }
+            };
+
+            // Função para obter mensagem compacta do SLA
+            const getSLAMessageCompact = (statusSLA, diasRestantes) => {
+                switch (statusSLA) {
+                    case 'dentro_prazo':
+                        return `<div class="alert alert-success alert-sm-compact">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Dentro do prazo
+                        </div>`;
+                    case 'proximo_vencimento':
+                        return `<div class="alert alert-warning alert-sm-compact">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Próximo vencimento
+                        </div>`;
+                    case 'vencido':
+                        return `<div class="alert alert-danger alert-sm-compact">
+                            <i class="fas fa-times-circle me-1"></i>
+                            <strong>VENCIDO!</strong>
+                        </div>`;
+                    default:
+                        return `<div class="alert alert-info alert-sm-compact">
+                            <i class="fas fa-info-circle me-1"></i>
+                            SLA não disponível
+                        </div>`;
+                }
+            };
+
+            // Função para obter mensagem do SLA (mantida para compatibilidade)
+            const getSLAMessage = (statusSLA, diasRestantes) => {
+                switch (statusSLA) {
+                    case 'dentro_prazo':
+                        return `<div class="alert alert-success alert-sm">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Ticket dentro do prazo estabelecido pelo SLA
+                        </div>`;
+                    case 'proximo_vencimento':
+                        return `<div class="alert alert-warning alert-sm">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            Atenção! O prazo do SLA está próximo do vencimento
+                        </div>`;
+                    case 'vencido':
+                        return `<div class="alert alert-danger alert-sm">
+                            <i class="fas fa-times-circle me-1"></i>
+                            <strong>URGENTE!</strong> O prazo do SLA foi ultrapassado
+                        </div>`;
+                    default:
+                        return `<div class="alert alert-info alert-sm">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Informações de SLA não disponíveis
+                        </div>`;
+                }
+            };
+        
+            const fetchTicketDetails = async () => {
+                try {
+                    console.log('Buscando detalhes do ticket...');
+                    const response = await fetch(`/api/v1/tickets/${ticketId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+        
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error('Ticket não encontrado.');
+                    }
+        
+                    const ticket = await response.json();
+                    console.log('Detalhes do ticket recebidos:', ticket);
+                                         renderTicketDetails(ticket);
+                     renderAnotacoes(ticket.anotacoes);
+                     // Todos os usuários podem atualizar tickets (com restrições)
+                     populateForm(ticket);
+                } catch (error) {
+                    console.error('Erro ao buscar ticket:', error);
+                    const ticketContainer = document.getElementById('ticket-container');
+                    if (ticketContainer) {
+                        ticketContainer.innerHTML = `<p class="alert alert-danger">${error.message}</p>`;
+                    }
+                }
+            };
+            
+            const renderTicketDetails = (ticket) => {
+                ticketTitulo.textContent = `#${String(ticket.id).padStart(4, '0')} - ${ticket.titulo}`;
+                ticketDescricao.textContent = ticket.descricao;
+                ticketCriador.textContent = ticket.solicitante || 'Não informado';
+                ticketDataCriacao.textContent = new Date(ticket.createdAt).toLocaleString();
+                
+                ticketStatus.innerHTML = `<span class="badge ${getStatusBadgeClass(ticket.status)}">${ticket.status}</span>`;
+                ticketPrioridade.innerHTML = `<span class="badge ${getPriorityBadgeClass(ticket.prioridade)}">${ticket.prioridade}</span>`;
+                ticketSetor.textContent = ticket.setor || 'Não atribuído';
+                ticketResponsavel.textContent = ticket.responsavel || 'Não atribuído';
+                
+                // Renderizar informações de SLA de forma mais elegante
+                renderSLAInfo(ticket);
+        
+                // Atualizar contador do histórico
+                const historicoCount = document.getElementById('historico-count');
+                if (historicoCount) {
+                    historicoCount.textContent = ticket.historico ? ticket.historico.length : 0;
+                }
+                
+                historicoContainer.innerHTML = '';
+                if (Array.isArray(ticket.historico) && ticket.historico.length > 0) {
+                    // Ordenar histórico por data (mais recente primeiro)
+                    const historicoOrdenado = ticket.historico.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    
+                    historicoOrdenado.forEach((historico, index) => {
+                        const historicoItem = document.createElement('div');
+                        historicoItem.className = 'historico-item-compact';
+                        
+                        const dataFormatada = new Date(historico.dataAlteracao || historico.createdAt).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        historicoItem.innerHTML = `
+                            <div class="historico-header-compact">
+                                <div class="historico-alteracao-compact">${historico.alteracao}</div>
+                                <div class="historico-data-compact">${dataFormatada}</div>
+                            </div>
+                            <div class="historico-usuario-compact">
+                                <i class="fas fa-user me-1"></i>${historico.usuario}
+                            </div>
+                        `;
+                        historicoContainer.appendChild(historicoItem);
+                    });
+                } else {
+                    historicoContainer.innerHTML = `
+                        <div class="text-center py-2">
+                            <i class="fas fa-history text-muted"></i>
+                            <small class="text-muted d-block">Nenhuma alteração</small>
+                        </div>
+                    `;
+                }
+            };
+        
+                         const populateForm = async (ticket) => {
+                 // Todos os usuários podem ver o formulário de atualização
+                 if (formUpdate) formUpdate.style.display = 'block';
+                 
+                 // Apenas admins podem carregar setores (para alteração)
+                 if (user && user.role === 'admin') {
+                     await loadSectors(ticket.setor);
+                 }
+                 
+                 // Todos os usuários podem carregar usuários do setor
+                 await loadUsers(ticket.responsavel);
+         
+                 console.log('Preenchendo formulário de atualização...');
+                 statusSelect.value = ticket.status;
+                 prioridadeSelect.value = ticket.prioridade;
+                 console.log(`Valores definidos: Status=${statusSelect.value}, Prioridade=${prioridadeSelect.value}`);
+             };
+
+            const loadSectors = async (currentSetor) => {
+                try {
+                    console.log('Buscando setores...');
+                    const response = await fetch('/api/v1/setores', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const setores = await response.json();
+                    setorSelect.innerHTML = '<option value="">Não atribuído</option>';
+                    setores.forEach(setor => {
+                        const selected = setor.nome === currentSetor ? 'selected' : '';
+                        setorSelect.innerHTML += `<option value="${setor.nome}" ${selected}>${setor.nome}</option>`;
+                    });
+                    console.log('Setores carregados:', setores);
+                } catch (error) {
+                    console.error('Erro ao carregar setores:', error);
+                }
+            };
+            
+            // Função para obter os setores do usuário logado
+            const getUserSetores = async () => {
+                try {
+                    console.log('🔍 Iniciando getUserSetores...');
+                    console.log('🔍 Token:', token ? token.substring(0, 50) + '...' : 'null');
+                    
+                    // Decodificar o token para obter os setores
+                    const tokenData = JSON.parse(atob(token.split('.')[1]));
+                    console.log('🔍 Token data:', tokenData);
+                    
+                    if (tokenData.setores && tokenData.setores.length > 0) {
+                        const setores = tokenData.setores.map(s => s.nome);
+                        console.log('✅ Setores encontrados:', setores);
+                        return setores;
+                    } else {
+                        console.log('⚠️ Nenhum setor encontrado, retornando TI e RECEBIMENTO');
+                        return ['TI', 'RECEBIMENTO'];
+                    }
+                } catch (error) {
+                    console.error('❌ Erro ao obter setores do usuário:', error);
+                    console.error('❌ Stack trace:', error.stack);
+                    console.log('🔄 Retornando setores padrão devido ao erro');
+                    return ['TI', 'RECEBIMENTO'];
+                }
+            };
+        
+                         const loadUsers = async (currentUser) => {
+                 try {
+                     console.log('🔍 Iniciando loadUsers...');
+                     console.log('👤 Role do usuário:', userRole);
+                     console.log('👤 Usuário atual:', currentUser);
+                     
+                     // Obter o setor do ticket
+                     const ticketSetor = document.getElementById('ticket-setor').textContent;
+                     console.log('🎫 Setor do ticket:', ticketSetor);
+                     
+                     let users = [];
+                     
+                     // Se o usuário é admin, buscar todos os usuários
+                     if (userRole && userRole === 'admin') {
+                         console.log('👑 Usuário é admin, buscando todos os usuários...');
+                         const response = await fetch('/api/v1/users', {
+                             headers: { 'Authorization': `Bearer ${token}` }
+                         });
+                         
+                         if (!response.ok) {
+                             throw new Error('Erro ao buscar usuários');
+                         }
+                         
+                         users = await response.json();
+                         console.log('✅ Usuários encontrados (admin):', users.length);
+                     } else {
+                         // Para usuários normais, buscar usuários de todos os seus setores
+                         console.log('👤 Usuário normal, buscando usuários dos setores...');
+                         const userSetores = await getUserSetores();
+                         console.log('🏷️ Setores do usuário:', userSetores);
+                         
+                         // Buscar usuários de cada setor
+                         for (const setor of userSetores) {
+                             try {
+                                 console.log(`🔍 Buscando usuários do setor: ${setor}`);
+                                 const url = `/api/v1/users/setor/${encodeURIComponent(setor)}`;
+                                 console.log(`🔍 URL da requisição: ${url}`);
+                                 
+                                 const response = await fetch(url, {
+                                     headers: { 'Authorization': `Bearer ${token}` }
+                                 });
+                                 
+                                 console.log(`🔍 Status da resposta: ${response.status}`);
+                                 
+                                 if (response.ok) {
+                                     const setorUsers = await response.json();
+                                     console.log(`✅ Usuários encontrados no setor ${setor}:`, setorUsers.length);
+                                     console.log(`✅ Dados dos usuários:`, setorUsers);
+                                     users = users.concat(setorUsers);
+                                 } else {
+                                     console.warn(`⚠️ Erro na resposta do setor ${setor}:`, response.status);
+                                     const errorText = await response.text();
+                                     console.warn(`⚠️ Texto do erro:`, errorText);
+                                 }
+                             } catch (error) {
+                                 console.warn(`❌ Erro ao buscar usuários do setor ${setor}:`, error);
+                                 console.warn(`❌ Stack trace:`, error.stack);
+                             }
+                         }
+                         
+                         // Remover duplicatas baseado no username
+                         const uniqueUsers = [];
+                         const seenUsernames = new Set();
+                         users.forEach(user => {
+                             if (!seenUsernames.has(user.username)) {
+                                 seenUsernames.add(user.username);
+                                 uniqueUsers.push(user);
+                             }
+                         });
+                         users = uniqueUsers;
+                         console.log('🔄 Usuários após remoção de duplicatas:', users.length);
+                     }
+                     
+                     responsavelSelect.innerHTML = '<option value="">Não atribuído</option>';
+                     
+                     console.log('📊 Total de usuários encontrados:', users.length);
+                     console.log('👥 Usuários encontrados:', users);
+                     
+                     users.forEach(u => {
+                         const selected = u.username === currentUser ? 'selected' : '';
+                         responsavelSelect.innerHTML += `<option value="${u.username}" ${selected}>${u.username} (${u.setor})</option>`;
+                     });
+                     
+                     console.log('✅ Usuários carregados no select:', responsavelSelect.innerHTML);
+                 } catch (error) {
+                     console.error('Erro ao carregar usuários:', error);
+                     // Em caso de erro, mostrar pelo menos a opção "Não atribuído"
+                     responsavelSelect.innerHTML = '<option value="">Não atribuído</option>';
+                 }
+             };
+            
+            const renderAnotacoes = (anotacoes) => {
+                anotacoesContainer.innerHTML = '';
+                if (Array.isArray(anotacoes) && anotacoes.length > 0) {
+                    anotacoes.forEach(anotacao => {
+                        const anotacaoDiv = document.createElement('div');
+                        anotacaoDiv.className = 'anotacao-item-compact';
+                        
+                        const dataFormatada = new Date(anotacao.createdAt).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        });
+                        
+                        anotacaoDiv.innerHTML = `
+                            <div class="anotacao-header-compact">
+                                <div class="anotacao-autor-compact">${anotacao.autor}</div>
+                                <div class="anotacao-data-compact">${dataFormatada}</div>
+                            </div>
+                            <div class="anotacao-conteudo-compact">${anotacao.conteudo}</div>
+                        `;
+                        anotacoesContainer.appendChild(anotacaoDiv);
+                    });
+                } else {
+                    anotacoesContainer.innerHTML = `
+                        <div class="text-center py-2">
+                            <i class="fas fa-comments text-muted"></i>
+                            <small class="text-muted d-block">Nenhuma anotação</small>
+                        </div>
+                    `;
+                }
+            };
+
+            addAnotacaoForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const anotacao = anotacaoText.value.trim();
+                if (!anotacao) {
+                    alert('A anotação não pode estar vazia.');
+                    return;
+                }
+                
+                console.log('Tentando adicionar anotação:', anotacao);
+                try {
+                    const response = await fetch(`/api/v1/tickets/${ticketId}/anotacoes`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ conteudo: anotacao })
+                    });
+                    
+                    if (response.ok) {
+                        console.log('Anotação adicionada com sucesso.');
+                        anotacaoText.value = '';
+                        fetchTicketDetails(); // Recarrega os detalhes para mostrar a nova anotação
+                    } else {
+                        const error = await response.json();
+                        console.error('Erro ao adicionar anotação:', error);
+                        alert(`Erro ao adicionar anotação: ${error.error || 'Erro desconhecido'}`);
+                    }
+                } catch (error) {
+                    console.error('Erro de rede:', error);
+                    alert('Erro de conexão. Verifique se o servidor está rodando.');
+                }
+            });
+        
+            formUpdate.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const updatedData = {
+                    status: statusSelect.value,
+                    prioridade: prioridadeSelect.value,
+                    responsavel: responsavelSelect.value
+                };
+                
+                // Apenas admins podem alterar o setor responsável
+                if (user && user.role === 'admin') {
+                    updatedData.setor = setorSelect.value;
+                }
+                
+                console.log('Enviando atualização do ticket:', updatedData);
+
+                try {
+                    const response = await fetch(`/api/v1/tickets/${ticketId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(updatedData)
+                    });
+                    
+                    if (response.ok) {
+                        statusMessage.innerHTML = '<div class="alert alert-success">Ticket atualizado com sucesso!</div>';
+                        console.log('Ticket atualizado com sucesso. Recarregando detalhes...');
+                        fetchTicketDetails();
+                    } else {
+                        const error = await response.json();
+                        statusMessage.innerHTML = `<div class="alert alert-danger">Erro ao atualizar: ${error.error || 'Erro desconhecido'}</div>`;
+                        console.error('Erro ao atualizar ticket:', error);
+                    }
+                } catch (error) {
+                    console.error('Erro de rede:', error);
+                    statusMessage.innerHTML = `<div class="alert alert-danger">Erro de conexão. Verifique se o servidor está rodando.</div>`;
+                }
+            });
+        
+            fetchTicketDetails();
+        });
+    </script>
+</body>
+</html>

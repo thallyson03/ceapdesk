@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Setores</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .setor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            transition: all 0.3s ease;
+        }
+        
+        .setor-item:hover {
+            background-color: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .setor-nome {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .btn-delete-setor {
+            background-color: #dc3545;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-delete-setor:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+        
+        .setor-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .setor-count {
+            background-color: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/dashboard.html" class="btn btn-secondary">
+                ← Voltar para o Dashboard
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <span id="user-info" class="me-2 fw-bold"></span>
+                <button id="logout-btn" class="btn btn-danger">Sair</button>
+            </div>
+        </div>
+        <h1 class="mb-4">Gerenciar Setores</h1>
+        <div class="row">
+            <!-- Formulário para criar setor -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-plus me-2"></i>Cadastrar Novo Setor</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="create-setor-form">
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome do Setor</label>
+                                <input type="text" class="form-control" id="nome" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Cadastrar Setor
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lista de setores existentes -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-list me-2"></i>Setores Cadastrados</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="setores-lista" class="mb-3">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                                <p class="mt-2">Carregando setores...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="status-message" class="mt-4"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            if (payload.role !== 'admin') {
+                document.body.innerHTML = '<div class="alert alert-danger text-center m-5">Acesso negado. Apenas administradores podem acessar esta página.</div>';
+                return;
+            }
+
+            const userInfo = document.getElementById('user-info');
+            if (payload) {
+                userInfo.innerHTML = `<i class="fas fa-user me-1"></i>Olá, ${payload.username}!`;
+            }
+            
+            // Carregar setores ao inicializar
+            loadSetores();
+        });
+        
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+
+        // Função para carregar setores
+        async function loadSetores() {
+            const setoresLista = document.getElementById('setores-lista');
+            
+            try {
+                const response = await fetch('/api/v1/setores', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                if (response.ok) {
+                    const setores = await response.json();
+                    renderSetores(setores);
+                } else {
+                    setoresLista.innerHTML = '<div class="alert alert-danger">Erro ao carregar setores.</div>';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar setores:', error);
+                setoresLista.innerHTML = '<div class="alert alert-danger">Erro de conexão ao carregar setores.</div>';
+            }
+        }
+
+        // Função para renderizar setores
+        function renderSetores(setores) {
+            const setoresLista = document.getElementById('setores-lista');
+            
+            if (setores.length === 0) {
+                setoresLista.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-building"></i>
+                        <h6>Nenhum setor cadastrado</h6>
+                        <p class="mb-0">Cadastre o primeiro setor usando o formulário ao lado.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const setoresHTML = setores.map(setor => `
+                <div class="setor-item">
+                    <div class="setor-info">
+                        <span class="setor-nome">${setor.nome}</span>
+                        <span class="setor-count">ID: ${setor.id}</span>
+                    </div>
+                    <button class="btn-delete-setor" data-setor-id="${setor.id}" data-setor-nome="${setor.nome}">
+                        <i class="fas fa-trash me-1"></i>Excluir
+                    </button>
+                </div>
+            `).join('');
+            
+            setoresLista.innerHTML = setoresHTML;
+        }
+
+        // Função para excluir setor
+        async function deleteSetor(setorId, setorNome) {
+            if (!confirm(`Tem certeza que deseja excluir o setor "${setorNome}"?\n\n⚠️ ATENÇÃO: Esta ação não pode ser desfeita e pode afetar tickets e usuários associados a este setor.`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/v1/setores/${setorId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                if (response.ok) {
+                    showStatus('Setor excluído com sucesso!', 'success');
+                    loadSetores(); // Recarregar lista
+                } else {
+                    const error = await response.json();
+                    showStatus(`Erro ao excluir setor: ${error.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir setor:', error);
+                showStatus('Erro de conexão ao excluir setor.', 'danger');
+            }
+        }
+
+        // Event listener para excluir setores (delegação de eventos)
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-delete-setor')) {
+                const button = e.target.closest('.btn-delete-setor');
+                const setorId = button.dataset.setorId;
+                const setorNome = button.dataset.setorNome;
+                deleteSetor(setorId, setorNome);
+            }
+        });
+
+        // Função para mostrar status
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
+            
+            // Auto-remover após 5 segundos
+            setTimeout(() => {
+                if (statusMessage.firstChild) {
+                    statusMessage.firstChild.remove();
+                }
+            }, 5000);
+        }
+
+        document.getElementById('create-setor-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const nome = form.nome.value.trim();
+            
+            // Validação básica
+            if (!nome) {
+                showStatus('O nome do setor é obrigatório.', 'danger');
+                return;
+            }
+            
+            if (nome.length < 2) {
+                showStatus('O nome do setor deve ter pelo menos 2 caracteres.', 'danger');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/v1/setores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ nome })
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                if (response.ok) {
+                    showStatus('Setor cadastrado com sucesso!', 'success');
+                    form.reset();
+                    loadSetores(); // Recarregar lista
+                } else {
+                    const error = await response.json();
+                    showStatus(`Erro ao cadastrar: ${error.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro de rede:', error);
+                showStatus('Erro de conexão. Verifique se o servidor está rodando.', 'danger');
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

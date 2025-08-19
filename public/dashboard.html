@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .ticket-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .ticket-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .loading {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #6c757d;
+        }
+        .ticket-id {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .ticket-title {
+            font-weight: 600;
+            color: #333;
+        }
+        .ticket-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.5em 0.75em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold" href="#">
+                    <i class="fas fa-ticket-alt me-2"></i>Sistema de Tickets
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/dashboard.html">
+                                <i class="fas fa-home me-1"></i>Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/criar-ticket.html">
+                                <i class="fas fa-plus me-1"></i>Criar Ticket
+                            </a>
+                        </li>
+                        <li class="nav-item d-none" id="admin-menu-item">
+                            <div class="dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-cog me-1"></i>Administração
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="/analytics.html">
+                                        <i class="fas fa-chart-line me-2"></i>Analytics
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/admin-user-create.html">
+                                        <i class="fas fa-user-plus me-2"></i>Cadastrar Usuário
+                                    </a></li>
+                                                            <li><a class="dropdown-item" href="/gerenciar-setores.html">
+                            <i class="fas fa-building me-2"></i>Gerenciar Setores
+                        </a></li>
+                                    <li><a class="dropdown-item" href="/gerenciar-setores-usuario.html">
+                                        <i class="fas fa-users-cog me-2"></i>Gerenciar Setores de Usuários
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/gerenciar-sla.html">
+                                        <i class="fas fa-clock me-2"></i>Gerenciar SLA
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="/reports.html">
+                                        <i class="fas fa-chart-bar me-2"></i>Relatórios
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="/perfil-admin.html">
+                                        <i class="fas fa-user-cog me-2"></i>Perfil Admin
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </li>
+                    </ul>
+                    
+                    <ul class="navbar-nav">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user me-1"></i><span id="user-info"></span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/change-password.html">
+                                    <i class="fas fa-key me-2"></i>Alterar Senha
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" id="logout-btn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Sair
+                                </a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container">
+            <!-- Seção de Alertas SLA -->
+            <div id="sla-alerts-container" class="mb-4" style="display: none;">
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <div>
+                            <strong>Alertas de SLA:</strong>
+                            <span id="sla-alerts-text"></span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="mb-0">Dashboard de Tickets</h1>
+                    <p class="text-muted mb-0">Gerencie e acompanhe seus tickets</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="/criar-ticket.html" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Criar Ticket
+                    </a>
+                    <button id="download-report-btn" class="btn btn-primary d-none">
+                        <i class="fas fa-download me-1"></i>Baixar Relatório
+                    </button>
+                </div>
+            </div>
+        
+        <div class="card mb-4">
+            <div class="card-body">
+                <h6 class="card-title mb-3">
+                    <i class="fas fa-filter me-2"></i>Filtros
+                </h6>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" id="search-input" class="form-control" placeholder="Buscar por título ou descrição...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="status-filter" class="form-select">
+                            <option value="">Todos os Status</option>
+                            <option value="aberto">Aberto</option>
+                            <option value="em progresso">Em Progresso</option>
+                            <option value="fechado">Fechado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-outline-secondary w-100" id="clear-filters-btn">
+                            <i class="fas fa-times me-1"></i>Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tickets-container" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            </div>
+            
+            <!-- Container para paginação -->
+            <div id="pagination-container" class="mt-4">
+                <!-- Paginação será renderizada aqui -->
+            </div>
+
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        const userInfo = document.getElementById('user-info');
+        const adminMenuItem = document.getElementById('admin-menu-item');
+        
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        const parseJwt = (token) => {
+            try {
+                return JSON.parse(atob(token.split('.')[1]));
+            } catch (e) {
+                return null;
+            }
+        };
+
+        const payload = parseJwt(token);
+        if (payload) {
+            userInfo.innerHTML = `<i class="fas fa-user me-1"></i>Olá, ${payload.username}!`;
+
+            if (payload.role === 'admin') {
+                adminMenuItem.classList.remove('d-none');
+                document.getElementById('download-report-btn').classList.remove('d-none');
+            }
+        }
+
+        // Carregar alertas de SLA
+        loadSLAAlerts();
+        
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+
+        fetchTickets();
+
+        document.getElementById('search-input').addEventListener('input', fetchTickets);
+        document.getElementById('status-filter').addEventListener('change', fetchTickets);
+        
+        // Event listener para download de relatório
+        document.getElementById('download-report-btn').addEventListener('click', downloadReport);
+        
+        // Event listener para limpar filtros
+        document.getElementById('clear-filters-btn').addEventListener('click', function() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('status-filter').value = '';
+            fetchTickets(1);
+        });
+        
+        // Event listener para paginação (delegação de eventos)
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('pagination-btn')) {
+                const page = parseInt(e.target.dataset.page);
+                fetchTickets(page);
+            }
+        });
+    });
+
+    const fetchTickets = async (page = 1) => {
+        const container = document.getElementById('tickets-container');
+        container.innerHTML = '<div class="col-12 loading">Carregando tickets...</div>';
+
+        const search = document.getElementById('search-input').value;
+        const status = document.getElementById('status-filter').value;
+        
+        const queryParams = new URLSearchParams({ 
+            search, 
+            status, 
+            page: page.toString(),
+            limit: '10'
+        }).toString();
+        
+        try {
+            const response = await fetch(`/api/v1/tickets?${queryParams}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return;
+            }
+            const data = await response.json();
+            
+            // Verificar se a resposta tem paginação
+            if (data.pagination) {
+                renderTickets(data.tickets);
+                renderPagination(data.pagination);
+            } else {
+                // Fallback para resposta antiga
+                renderTickets(Array.isArray(data) ? data : []);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar tickets:', error);
+            container.innerHTML = '<div class="col-12 alert alert-danger">Erro ao carregar tickets.</div>';
+        }
+    };
+
+    const renderTickets = (tickets) => {
+        const container = document.getElementById('tickets-container');
+        container.innerHTML = '';
+        
+        // AQUI ESTÁ A SEGUNDA CORREÇÃO: A FUNÇÃO AGORA RECEBE UM ARRAY GARANTIDO
+        if (tickets.length === 0) {
+            container.innerHTML = '<div class="col-12"><div class="alert alert-info">Nenhum ticket encontrado.</div></div>';
+            return;
+        }
+        tickets.forEach(ticket => {
+            const ticketCard = document.createElement('div');
+            ticketCard.className = 'col';
+            ticketCard.innerHTML = `
+                <div class="card h-100 ticket-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title ticket-title mb-0">
+                                <span class="ticket-id">#${String(ticket.id).padStart(4, '0')}</span> - ${ticket.titulo}
+                            </h5>
+                            <small class="text-muted">${new Date(ticket.createdAt).toLocaleDateString()}</small>
+                        </div>
+                        <p class="card-text ticket-description mb-3">${ticket.descricao.substring(0, 80)}${ticket.descricao.length > 80 ? '...' : ''}</p>
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-building me-1"></i>${ticket.setor || ticket.areaResponsavel}
+                            </span>
+                            <span class="badge ${getStatusBadgeClass(ticket.status)}">
+                                <i class="fas fa-circle me-1"></i>${ticket.status}
+                            </span>
+                            <span class="badge ${getPriorityBadgeClass(ticket.prioridade)}">
+                                <i class="fas fa-exclamation-triangle me-1"></i>${ticket.prioridade}
+                            </span>
+                            ${ticket.statusSLA ? `
+                                <span class="badge ${getSLABadgeClass(ticket.statusSLA)}">
+                                    <i class="fas fa-clock me-1"></i>${getSLABadgeText(ticket.statusSLA)}
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>Criado em ${new Date(ticket.createdAt).toLocaleDateString()}
+                        </small>
+                    </div>
+                </div>
+            `;
+            ticketCard.addEventListener('click', () => {
+                window.location.href = `/ticket-detalhes.html?id=${ticket.id}`;
+            });
+            container.appendChild(ticketCard);
+        });
+    };
+
+    const getStatusBadgeClass = (status) => {
+        switch (status) {
+            case 'aberto': return 'bg-danger';
+            case 'em progresso': return 'bg-warning text-dark';
+            case 'fechado': return 'bg-success';
+            default: return 'bg-secondary';
+        }
+    };
+    
+    const getPriorityBadgeClass = (prioridade) => {
+        switch (prioridade) {
+            case 'baixa': return 'bg-success';
+            case 'media': return 'bg-warning text-dark';
+            case 'alta': return 'bg-danger';
+            default: return 'bg-secondary';
+        }
+    };
+
+    const getSLABadgeClass = (statusSLA) => {
+        switch (statusSLA) {
+            case 'dentro_prazo': return 'bg-success';
+            case 'proximo_vencimento': return 'bg-warning text-dark';
+            case 'vencido': return 'bg-danger';
+            default: return 'bg-secondary';
+        }
+    };
+
+    const getSLABadgeText = (statusSLA) => {
+        switch (statusSLA) {
+            case 'dentro_prazo': return 'Dentro do Prazo';
+            case 'proximo_vencimento': return 'Próximo Vencimento';
+            case 'vencido': return 'SLA Vencido';
+            default: return 'SLA';
+        }
+    };
+
+    const renderPagination = (pagination) => {
+        const paginationContainer = document.getElementById('pagination-container');
+        if (!paginationContainer) return;
+
+        if (pagination.totalPages <= 1) {
+            paginationContainer.innerHTML = '';
+            return;
+        }
+
+        let paginationHTML = '<nav aria-label="Navegação de páginas"><ul class="pagination justify-content-center">';
+        
+        // Botão anterior
+        if (pagination.hasPrev) {
+            paginationHTML += `
+                <li class="page-item">
+                    <button class="page-link pagination-btn" data-page="${pagination.currentPage - 1}">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+                </li>
+            `;
+        } else {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </span>
+                </li>
+            `;
+        }
+
+        // Páginas
+        const startPage = Math.max(1, pagination.currentPage - 2);
+        const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
+
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === pagination.currentPage) {
+                paginationHTML += `
+                    <li class="page-item active">
+                        <span class="page-link">${i}</span>
+                    </li>
+                `;
+            } else {
+                paginationHTML += `
+                                    <li class="page-item">
+                    <button class="page-link pagination-btn" data-page="${i}">${i}</button>
+                </li>
+                `;
+            }
+        }
+
+        // Botão próximo
+        if (pagination.hasNext) {
+            paginationHTML += `
+                <li class="page-item">
+                    <button class="page-link pagination-btn" data-page="${pagination.currentPage + 1}">
+                        Próximo <i class="fas fa-chevron-right"></i>
+                    </button>
+                </li>
+            `;
+        } else {
+            paginationHTML += `
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        Próximo <i class="fas fa-chevron-right"></i>
+                    </span>
+                </li>
+            `;
+        }
+
+        paginationHTML += '</ul></nav>';
+        
+        // Adicionar informações da paginação
+        paginationHTML += `
+            <div class="text-center mt-2">
+                <small class="text-muted">
+                    Mostrando ${((pagination.currentPage - 1) * pagination.limit) + 1} a ${Math.min(pagination.currentPage * pagination.limit, pagination.total)} de ${pagination.total} tickets
+                </small>
+            </div>
+        `;
+
+        paginationContainer.innerHTML = paginationHTML;
+    };
+
+    // Função para carregar alertas de SLA
+    const loadSLAAlerts = async () => {
+        try {
+            const response = await fetch('/api/v1/tickets/sla/alertas', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (response.ok) {
+                const tickets = await response.json();
+                
+                if (tickets.length > 0) {
+                    const alertsContainer = document.getElementById('sla-alerts-container');
+                    const alertsText = document.getElementById('sla-alerts-text');
+                    
+                    const vencidos = tickets.filter(t => t.statusSLA === 'vencido').length;
+                    const proximos = tickets.filter(t => t.statusSLA === 'proximo_vencimento').length;
+                    
+                    let alertMessage = '';
+                    if (vencidos > 0) {
+                        alertMessage += `${vencidos} ticket(s) com SLA vencido`;
+                    }
+                    if (proximos > 0) {
+                        if (alertMessage) alertMessage += ', ';
+                        alertMessage += `${proximos} ticket(s) próximo do vencimento`;
+                    }
+                    
+                    alertsText.textContent = alertMessage;
+                    alertsContainer.style.display = 'block';
+                    
+                    // Adicionar classe de alerta baseada na severidade
+                    const alertElement = alertsContainer.querySelector('.alert');
+                    if (vencidos > 0) {
+                        alertElement.className = 'alert alert-danger alert-dismissible fade show';
+                    } else {
+                        alertElement.className = 'alert alert-warning alert-dismissible fade show';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao carregar alertas de SLA:', error);
+        }
+    };
+
+    const downloadReport = async () => {
+        try {
+            const search = document.getElementById('search-input').value;
+            const status = document.getElementById('status-filter').value;
+            
+            const queryParams = new URLSearchParams({ 
+                search, 
+                status 
+            }).toString();
+            
+            const response = await fetch(`/api/v1/reports/tickets?${queryParams}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (response.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            if (response.status === 403) {
+                alert('Acesso negado. Apenas administradores podem baixar relatórios.');
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error('Erro ao gerar relatório');
+            }
+            
+            // Criar blob e download
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `relatorio_tickets_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+        } catch (error) {
+            console.error('Erro ao baixar relatório:', error);
+            alert('Erro ao baixar relatório. Tente novamente.');
+        }
+    };
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

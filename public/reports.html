@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios - Sistema de Tickets</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <style>
+        .reports-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px 0;
+        }
+        
+        .reports-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+        }
+        
+        .reports-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .reports-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .reports-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .filters-section {
+            padding: 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .download-section {
+            padding: 30px;
+        }
+        
+        .download-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .download-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+        
+        .download-card h5 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .download-card p {
+            color: #6c757d;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+        
+        .btn-download:active {
+            transform: translateY(0);
+        }
+        
+        .columns-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .columns-info h6 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .columns-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .columns-list li {
+            padding: 5px 0;
+            color: #424242;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .columns-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4caf50;
+            font-weight: bold;
+        }
+        
+        .stats-section {
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner-border {
+            color: #667eea;
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+                 .alert-danger {
+             background: #f8d7da;
+             color: #721c24;
+         }
+         
+         .btn-outline-light {
+             border: 2px solid rgba(255, 255, 255, 0.8);
+             color: white;
+             font-weight: 600;
+             transition: all 0.3s ease;
+         }
+         
+         .btn-outline-light:hover {
+             background: rgba(255, 255, 255, 0.2);
+             border-color: white;
+             color: white;
+             transform: translateY(-2px);
+             box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+         }
+         
+                 .btn-outline-light:active {
+            transform: translateY(0);
+        }
+        
+        /* Estilo para informações das colunas */
+        .columns-info {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .columns-info h6 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .columns-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+        }
+        
+        .columns-list li {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        
+        .columns-list li strong {
+            color: #667eea;
+        }
+        
+        /* Responsividade para o botão */
+        @media (max-width: 768px) {
+            .reports-header .d-flex {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .reports-header .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .columns-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="reports-container">
+        <div class="container">
+            <!-- Header -->
+            <div class="reports-card">
+                                 <div class="reports-header">
+                     <div class="d-flex justify-content-between align-items-center">
+                         <div>
+                             <h1><i class="fas fa-chart-bar me-3"></i>Relatórios</h1>
+                             <p>Gere relatórios detalhados dos tickets do sistema</p>
+                         </div>
+                         <div>
+                             <a href="dashboard.html" class="btn btn-outline-light btn-lg">
+                                 <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+                             </a>
+                         </div>
+                     </div>
+                 </div>
+                
+                <!-- Filtros -->
+                <div class="filters-section">
+                    <h4 class="mb-4"><i class="fas fa-filter me-2"></i>Filtros do Relatório</h4>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="startDate" class="form-label">Data Inicial</label>
+                            <input type="date" class="form-control" id="startDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="endDate" class="form-label">Data Final</label>
+                            <input type="date" class="form-control" id="endDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="statusFilter" class="form-label">Status</label>
+                            <select class="form-select" id="statusFilter">
+                                <option value="todos">Todos os Status</option>
+                                <option value="aberto">Aberto</option>
+                                <option value="em_andamento">Em Andamento</option>
+                                <option value="fechado">Fechado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="setorFilter" class="form-label">Setor</label>
+                            <select class="form-select" id="setorFilter">
+                                <option value="todos">Todos os Setores</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Informações das Colunas -->
+                <div class="columns-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Colunas Incluídas no Relatório</h6>
+                    <ul class="columns-list">
+                        <li><strong>Número do Ticket:</strong> ID único do ticket</li>
+                        <li><strong>Título:</strong> Título/assunto do ticket</li>
+                        <li><strong>Status:</strong> Status atual do ticket</li>
+                        <li><strong>Prioridade:</strong> Nível de prioridade do ticket</li>
+                        <li><strong>Setor:</strong> Setor responsável pelo ticket</li>
+                        <li><strong>Responsável:</strong> Usuário responsável pela resolução</li>
+                        <li><strong>Criado por:</strong> Usuário que criou o ticket</li>
+                        <li><strong>Data de Criação:</strong> Data quando o ticket foi criado</li>
+                        <li><strong>Data Limite:</strong> Data limite do SLA do ticket</li>
+                        <li><strong>Status SLA:</strong> Status do SLA (dentro do prazo, próximo vencimento, vencido)</li>
+                    </ul>
+                </div>
+                
+                <!-- Seção de Download -->
+                <div class="download-section">
+                    <h4 class="mb-4"><i class="fas fa-download me-2"></i>Download de Relatórios</h4>
+                    
+                    <div class="row">
+                                                 <div class="col-md-6">
+                             <div class="download-card">
+                                 <h5><i class="fas fa-file-excel me-2"></i>Relatório de Tickets</h5>
+                                 <p>Baixe um relatório completo de todos os tickets com as informações principais em formato Excel (XLSX).</p>
+                                 <button class="btn btn-download" id="download-tickets-btn">
+                                     <i class="fas fa-download me-2"></i>Baixar Relatório Excel
+                                 </button>
+                             </div>
+                         </div>
+                         
+                         <div class="col-md-6">
+                             <div class="download-card">
+                                 <h5><i class="fas fa-chart-line me-2"></i>Relatório de Produtividade</h5>
+                                 <p>Relatório detalhado de produtividade por usuário, incluindo tickets fechados por prioridade, tempo médio de resolução e setor.</p>
+                                 <button class="btn btn-download" id="download-productivity-btn">
+                                     <i class="fas fa-download me-2"></i>Baixar Relatório Excel
+                                 </button>
+                             </div>
+                         </div>
+                    </div>
+                </div>
+                
+                <!-- Loading -->
+                <div class="loading" id="loading">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-2">Gerando relatório...</p>
+                </div>
+                
+                <!-- Alertas -->
+                <div id="alerts"></div>
+            </div>
+            
+            <!-- Estatísticas -->
+            <div class="reports-card mt-4">
+                <div class="stats-section">
+                    <h4 class="mb-4"><i class="fas fa-chart-pie me-2"></i>Estatísticas Gerais</h4>
+                    <div class="row" id="statsContainer">
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number" id="totalTickets">-</div>
+                                <div class="stat-label">Total de Tickets</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number" id="ticketsAbertos">-</div>
+                                <div class="stat-label">Tickets Abertos</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number" id="ticketsFechados">-</div>
+                                <div class="stat-label">Tickets Fechados</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card">
+                                <div class="stat-number" id="ticketsVencidos">-</div>
+                                <div class="stat-label">SLA Vencido</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Verificar autenticação
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                if (payload.role !== 'admin') {
+                    showAlert('Acesso negado. Apenas administradores podem acessar esta página.', 'danger');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                    return;
+                }
+            } catch (error) {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Carregar setores
+        async function loadSetores() {
+            try {
+                const response = await fetch('/api/v1/setores', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const setores = await response.json();
+                    const setorSelect = document.getElementById('setorFilter');
+                    
+                    setores.forEach(setor => {
+                        const option = document.createElement('option');
+                        option.value = setor.nome;
+                        option.textContent = setor.nome;
+                        setorSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar setores:', error);
+            }
+        }
+
+        // Carregar estatísticas
+        async function loadStats() {
+            try {
+                const params = new URLSearchParams();
+                params.append('startDate', document.getElementById('startDate').value);
+                params.append('endDate', document.getElementById('endDate').value);
+                params.append('status', document.getElementById('statusFilter').value);
+                params.append('setor', document.getElementById('setorFilter').value);
+
+                const response = await fetch(`/api/v1/reports/stats?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    
+                    document.getElementById('totalTickets').textContent = stats.totalTickets;
+                    
+                    const statusStats = stats.statusStats;
+                    const abertos = statusStats.find(s => s.status === 'aberto')?.count || 0;
+                    const fechados = statusStats.find(s => s.status === 'fechado')?.count || 0;
+                    const vencidos = stats.slaStats.find(s => s.statusSLA === 'vencido')?.count || 0;
+                    
+                    document.getElementById('ticketsAbertos').textContent = abertos;
+                    document.getElementById('ticketsFechados').textContent = fechados;
+                    document.getElementById('ticketsVencidos').textContent = vencidos;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Download relatório de tickets
+        async function downloadTicketsReport() {
+            showLoading(true);
+            
+            try {
+                const params = new URLSearchParams();
+                params.append('startDate', document.getElementById('startDate').value);
+                params.append('endDate', document.getElementById('endDate').value);
+                params.append('status', document.getElementById('statusFilter').value);
+                params.append('setor', document.getElementById('setorFilter').value);
+
+                const response = await fetch(`/api/v1/reports/tickets?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                                         a.download = `relatorio_tickets_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                                         showAlert('Relatório Excel baixado com sucesso!', 'success');
+                } else {
+                    const error = await response.json();
+                    showAlert(`Erro ao baixar relatório: ${error.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao baixar relatório:', error);
+                showAlert('Erro ao baixar relatório. Tente novamente.', 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Download relatório de produtividade
+        async function downloadProductivityReport() {
+            showLoading(true);
+            
+            try {
+                const params = new URLSearchParams();
+                params.append('startDate', document.getElementById('startDate').value);
+                params.append('endDate', document.getElementById('endDate').value);
+
+                const response = await fetch(`/api/v1/reports/productivity?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                                         a.download = `relatorio_produtividade_${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                    
+                                         showAlert('Relatório de produtividade Excel baixado com sucesso!', 'success');
+                } else {
+                    const error = await response.json();
+                    showAlert(`Erro ao baixar relatório: ${error.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao baixar relatório:', error);
+                showAlert('Erro ao baixar relatório. Tente novamente.', 'danger');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Mostrar/ocultar loading
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'block' : 'none';
+        }
+
+        // Mostrar alerta
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            alertsContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Atualizar estatísticas quando filtros mudarem
+        function updateStats() {
+            loadStats();
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadSetores();
+            loadStats();
+            
+            // Atualizar estatísticas quando filtros mudarem
+            document.getElementById('startDate').addEventListener('change', updateStats);
+            document.getElementById('endDate').addEventListener('change', updateStats);
+            document.getElementById('statusFilter').addEventListener('change', updateStats);
+            document.getElementById('setorFilter').addEventListener('change', updateStats);
+            
+            // Event listeners para download de relatórios
+            document.getElementById('download-tickets-btn').addEventListener('click', downloadTicketsReport);
+            document.getElementById('download-productivity-btn').addEventListener('click', downloadProductivityReport);
+        });
+    </script>
+</body>
+</html>
