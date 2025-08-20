@@ -468,7 +468,7 @@
                                 </div>
                                 <div class="user-details">
                                     <h5>${user.username}</h5>
-                                    <p><i class="fas fa-building me-2"></i><strong>Setor:</strong> ${user.setor}</p>
+                                    <p><i class="fas fa-building me-2"></i><strong>Setor:</strong> ${user.setores && user.setores.length > 0 ? user.setores.map(s => s.nome).join(', ') : 'Não definido'}</p>
                                     <small><i class="fas fa-user-tag me-2"></i><strong>Cargo:</strong> 
                                         <span class="role-badge ${user.role}">${user.role}</span>
                                     </small>
@@ -490,7 +490,7 @@
                     if (userToEdit) {
                         document.getElementById('edit-user-id').value = userToEdit.id;
                         document.getElementById('edit-username').value = userToEdit.username;
-                        document.getElementById('edit-setor').value = userToEdit.setor;
+                        document.getElementById('edit-setor').value = userToEdit.setores && userToEdit.setores.length > 0 ? userToEdit.setores[0].nome : '';
                         document.getElementById('edit-role').value = userToEdit.role;
                         document.getElementById('edit-password').value = '';
                         const editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));

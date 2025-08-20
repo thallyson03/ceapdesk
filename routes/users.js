@@ -302,10 +302,33 @@ router.post('/register', authMiddleware, adminMiddleware, registerValidations, a
             role: role || 'user' 
         });
         
+        // Array para armazenar todos os IDs dos setores
+        let todosSetorIds = [];
+        
+        // Adicionar setor principal se fornecido
+        if (setor) {
+            const setorPrincipal = await Setor.findOne({
+                where: { nome: setor }
+            });
+            
+            if (setorPrincipal) {
+                todosSetorIds.push(setorPrincipal.id);
+            } else {
+                console.warn(`⚠️ Setor principal "${setor}" não encontrado`);
+            }
+        }
+        
         // Adicionar setores adicionais se fornecidos
         if (setorIds && Array.isArray(setorIds) && setorIds.length > 0) {
+            // Filtrar IDs que não estão já no setor principal
+            const setoresAdicionais = setorIds.filter(id => !todosSetorIds.includes(id));
+            todosSetorIds = [...todosSetorIds, ...setoresAdicionais];
+        }
+        
+        // Criar relações com todos os setores
+        if (todosSetorIds.length > 0) {
             const setores = await Setor.findAll({
-                where: { id: setorIds }
+                where: { id: todosSetorIds }
             });
             
             if (setores.length > 0) {
@@ -337,7 +360,7 @@ router.post('/register', authMiddleware, adminMiddleware, registerValidations, a
             createdAt: userWithSetores.createdAt
         };
         
-        console.log(`✅ Usuário ${username} criado por admin ${req.user.username}`);
+        console.log(`✅ Usuário ${username} criado por admin ${req.user.username} com ${userWithSetores.setores.length} setores`);
         
         res.status(201).json(userResponse);
     } catch (error) {
