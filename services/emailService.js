@@ -207,25 +207,7 @@ class EmailService {
         `;
     }
 
-    /**
-     * Testar conexão com Resend
-     */
-    async testConnection() {
-        try {
-            const result = await resend.emails.send({
-                from: `${this.fromName} <${this.fromEmail}>`,
-                to: ['test@example.com'],
-                subject: 'Teste de Conexão - Sistema de Tickets',
-                html: '<p>Este é um teste de conexão com o Resend.</p>'
-            });
-            
-            console.log('✅ Conexão com Resend testada com sucesso');
-            return true;
-        } catch (error) {
-            console.error('❌ Erro ao testar conexão com Resend:', error);
-            return false;
-        }
-    }
+
 }
 
 module.exports = new EmailService();

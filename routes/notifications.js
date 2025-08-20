@@ -14,16 +14,7 @@ router.get('/status', authMiddleware, adminMiddleware, async (req, res) => {
     }
 });
 
-// Rota para testar notificação (apenas admin)
-router.post('/test', authMiddleware, adminMiddleware, async (req, res) => {
-    try {
-        const result = await notificationService.testNotification();
-        res.status(200).json(result);
-    } catch (error) {
-        console.error('Erro ao testar notificação:', error);
-        res.status(500).json({ error: 'Erro interno do servidor.' });
-    }
-});
+
 
 // Rota para buscar usuários de um setor (apenas admin)
 router.get('/setor/:setorNome', authMiddleware, adminMiddleware, async (req, res) => {

@@ -36,16 +36,20 @@ router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
             }]
         });
         
-        // Adicionar campo setor virtual para cada usuário
-        const usersWithSetor = users.map(user => {
+        // Retornar usuários com setores, mas sem campo setor virtual
+        const usersWithSetores = users.map(user => {
             const userData = user.toJSON();
-            userData.setor = userData.setores && userData.setores.length > 0 
-                ? userData.setores[0].nome 
-                : 'Geral';
-            return userData;
+            // Manter apenas os dados básicos do usuário e seus setores
+            return {
+                id: userData.id,
+                username: userData.username,
+                role: userData.role,
+                createdAt: userData.createdAt,
+                setores: userData.setores || []
+            };
         });
         
-        res.status(200).json(usersWithSetor);
+        res.status(200).json(usersWithSetores);
     } catch (error) {
         console.error('Erro ao buscar usuários:', error);
         res.status(500).json({ error: 'Erro interno do servidor.' });
@@ -77,16 +81,19 @@ router.get('/setor/:setor', authMiddleware, async (req, res) => {
             }]
         });
         
-        // Adicionar campo setor virtual para cada usuário
-        const usersWithSetor = users.map(user => {
+        // Retornar usuários com setores, mas sem campo setor virtual
+        const usersWithSetores = users.map(user => {
             const userData = user.toJSON();
-            userData.setor = userData.setores && userData.setores.length > 0 
-                ? userData.setores[0].nome 
-                : 'Geral';
-            return userData;
+            // Manter apenas os dados básicos do usuário e seus setores
+            return {
+                id: userData.id,
+                username: userData.username,
+                role: userData.role,
+                setores: userData.setores || []
+            };
         });
         
-        res.status(200).json(usersWithSetor);
+        res.status(200).json(usersWithSetores);
     } catch (error) {
         console.error('Erro ao buscar usuários por setor:', error);
         res.status(500).json({ error: 'Erro interno do servidor.' });
@@ -148,7 +155,20 @@ router.post('/:userId/setores', authMiddleware, adminMiddleware, async (req, res
         }
         
         // Remover setores existentes e adicionar os novos
-        await user.setSetores(setores);
+        // Primeiro, remover todas as relações existentes
+        await UserSetor.destroy({
+            where: { userId: userId }
+        });
+        
+        // Depois, adicionar as novas relações
+        if (setores.length > 0) {
+            const userSetorRecords = setores.map(setor => ({
+                userId: userId,
+                setorId: setor.id
+            }));
+            
+            await UserSetor.bulkCreate(userSetorRecords);
+        }
         
         // Buscar usuário atualizado com setores
         const userUpdated = await User.findByPk(userId, {
@@ -187,8 +207,25 @@ router.delete('/:userId/setores/:setorId', authMiddleware, adminMiddleware, asyn
             return res.status(404).json({ error: 'Setor não encontrado.' });
         }
         
-        // Remover o setor específico
-        await user.removeSetor(setor);
+        // Verificar se a relação existe antes de tentar remover
+        const existingRelation = await UserSetor.findOne({
+            where: {
+                userId: userId,
+                setorId: setorId
+            }
+        });
+        
+        if (!existingRelation) {
+            return res.status(404).json({ error: 'Usuário não possui este setor.' });
+        }
+        
+        // Remover o setor específico usando a tabela de junção
+        await UserSetor.destroy({
+            where: {
+                userId: userId,
+                setorId: setorId
+            }
+        });
         
         console.log(`✅ Setor ${setor.nome} removido do usuário ${user.username} por admin ${req.user.username}`);
         
@@ -272,7 +309,12 @@ router.post('/register', authMiddleware, adminMiddleware, registerValidations, a
             });
             
             if (setores.length > 0) {
-                await novoUser.setSetores(setores);
+                const userSetorRecords = setores.map(setor => ({
+                    userId: novoUser.id,
+                    setorId: setor.id
+                }));
+                
+                await UserSetor.bulkCreate(userSetorRecords);
             }
         }
         
@@ -438,14 +480,22 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
         // Atualizar setores se fornecido
         if (setorIds && Array.isArray(setorIds)) {
             // Remover todos os setores atuais
-            await user.setSetores([]);
+            await UserSetor.destroy({
+                where: { userId: userId }
+            });
             
             // Adicionar os novos setores
             if (setorIds.length > 0) {
                 const setores = await Setor.findAll({
                     where: { id: setorIds }
                 });
-                await user.addSetores(setores);
+                
+                const userSetorRecords = setores.map(setor => ({
+                    userId: userId,
+                    setorId: setor.id
+                }));
+                
+                await UserSetor.bulkCreate(userSetorRecords);
             }
         }
 

@@ -1338,7 +1338,7 @@
                      
                      users.forEach(u => {
                          const selected = u.username === currentUser ? 'selected' : '';
-                         responsavelSelect.innerHTML += `<option value="${u.username}" ${selected}>${u.username} (${u.setor})</option>`;
+                         responsavelSelect.innerHTML += `<option value="${u.username}" ${selected}>${u.username}</option>`;
                      });
                      
                      console.log('✅ Usuários carregados no select:', responsavelSelect.innerHTML);

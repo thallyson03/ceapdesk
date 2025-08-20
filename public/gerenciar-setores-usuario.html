@@ -57,8 +57,9 @@
                         <div id="usuario-info" class="d-none">
                             <h6>Informações do Usuário:</h6>
                             <p><strong>Nome:</strong> <span id="usuario-nome"></span></p>
-                            <p><strong>Setor Principal:</strong> <span id="usuario-setor-principal"></span></p>
                             <p><strong>Papel:</strong> <span id="usuario-papel"></span></p>
+                            <p><strong>Setores Atribuídos:</strong></p>
+                            <div id="usuario-setores-info" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
@@ -168,7 +169,7 @@
                     usuarios.forEach(usuario => {
                         const option = document.createElement('option');
                         option.value = usuario.id;
-                        option.textContent = `${usuario.username} (${usuario.setor})`;
+                        option.textContent = usuario.username;
                         usuarioSelect.appendChild(option);
                     });
                 } catch (error) {
@@ -242,8 +243,18 @@
             // Função para atualizar informações do usuário
             const atualizarInfoUsuario = (usuario) => {
                 document.getElementById('usuario-nome').textContent = usuario.username;
-                document.getElementById('usuario-setor-principal').textContent = usuario.setor;
                 document.getElementById('usuario-papel').textContent = usuario.role;
+                
+                // Mostrar setores do usuário
+                const setoresInfo = document.getElementById('usuario-setores-info');
+                if (usuario.setores && usuario.setores.length > 0) {
+                    setoresInfo.innerHTML = usuario.setores.map(setor => 
+                        `<span class="setor-tag">${setor.nome}</span>`
+                    ).join('');
+                } else {
+                    setoresInfo.innerHTML = '<span class="text-muted">Nenhum setor atribuído</span>';
+                }
+                
                 usuarioInfo.classList.remove('d-none');
             };
 
@@ -312,6 +323,15 @@
                 const setorId = select.value;
                 
                 if (setorId && !setoresParaAdicionar.has(setorId)) {
+                    // Verificar se o setor já não está atribuído ao usuário
+                    const setorJaAtribuido = Array.from(document.querySelectorAll('#setores-atuais-lista .setor-tag'))
+                        .some(tag => tag.textContent.trim().includes(setores.find(s => s.id === parseInt(setorId))?.nome));
+                    
+                    if (setorJaAtribuido) {
+                        showStatus('Este setor já está atribuído ao usuário!', 'warning');
+                        return;
+                    }
+                    
                     setoresParaAdicionar.add(setorId);
                     atualizarSetoresParaAdicionar();
                     select.value = '';
@@ -323,7 +343,12 @@
                 if (!usuarioAtual) return;
                 
                 try {
-                    const setorIds = Array.from(setoresParaAdicionar);
+                    // Buscar setores atuais do usuário
+                    const setoresAtuais = await fetchSetoresUsuario(usuarioAtual.id);
+                    const setoresAtuaisIds = setoresAtuais.map(s => s.id);
+                    
+                    // Combinar setores atuais com novos setores
+                    const todosSetoresIds = [...setoresAtuaisIds, ...Array.from(setoresParaAdicionar)];
                     
                     const response = await fetch(`/api/v1/users/${usuarioAtual.id}/setores`, {
                         method: 'POST',
@@ -331,7 +356,7 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ setorIds })
+                        body: JSON.stringify({ setorIds: todosSetoresIds })
                     });
                     
                     if (response.ok) {
@@ -344,6 +369,9 @@
                         // Limpar setores para adicionar
                         setoresParaAdicionar.clear();
                         atualizarSetoresParaAdicionar();
+                        
+                        // Recarregar lista de usuários para atualizar o select
+                        await fetchUsuarios();
                     } else {
                         const error = await response.json();
                         showStatus(`Erro ao atualizar setores: ${error.error}`, 'danger');

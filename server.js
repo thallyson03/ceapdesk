@@ -19,8 +19,8 @@ const PORT = config.PORT;
 
 // 🔒 CONFIGURAÇÕES DE SEGURANÇA
 
-// Middleware para forçar HTTPS em produção
-if (config.NODE_ENV === 'production') {
+// Middleware para forçar HTTPS apenas em produção com certificado válido
+if (config.NODE_ENV === 'production' && config.FORCE_HTTPS === 'true') {
     app.use((req, res, next) => {
         // Verificar se a requisição veio via proxy (Nginx)
         const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
@@ -50,7 +50,7 @@ if (config.NODE_ENV === 'production') {
     });
 }
 
-// Headers de segurança HTTP
+// Headers de segurança HTTP - Configuração mais flexível
 app.use(helmet({
     contentSecurityPolicy: {
         directives: {
@@ -63,7 +63,9 @@ app.use(helmet({
             fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"]
         }
     },
-    crossOriginEmbedderPolicy: false
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false
 }));
 
 // Rate limiting global
@@ -108,12 +110,26 @@ const loginLimiter = rateLimit({
     }
 });
 
-// CORS configurado com origens específicas
+// CORS configurado com origens específicas - Mais flexível
 app.use(cors({
-    origin: config.ALLOWED_ORIGINS,
+    origin: function (origin, callback) {
+        // Permitir requisições sem origin (como mobile apps ou Postman)
+        if (!origin) return callback(null, true);
+        
+        // Verificar se a origem está na lista de permitidas
+        if (config.ALLOWED_ORIGINS.includes(origin) || 
+            config.ALLOWED_ORIGINS.includes('*') ||
+            origin.includes('localhost') ||
+            origin.includes('127.0.0.1') ||
+            origin.includes('129.146.176.225')) {
+            return callback(null, true);
+        }
+        
+        callback(new Error('Não permitido pelo CORS'));
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
 // Middleware para remover headers sensíveis
@@ -121,8 +137,6 @@ app.use((req, res, next) => {
     res.removeHeader('X-Powered-By');
     next();
 });
-
-
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -164,6 +178,12 @@ app.get('/criar-setor.html', (req, res) => {
 });
 app.get('/gerenciar-setores.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'gerenciar-setores.html'));
+});
+app.get('/gerenciar-setores-usuario.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'gerenciar-setores-usuario.html'));
+});
+app.get('/gerenciar-tickets.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'gerenciar-tickets.html'));
 });
 app.get('/gerenciar-sla.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'gerenciar-sla.html'));
@@ -221,8 +241,8 @@ app.use('*', (req, res) => {
 sequelize.sync({ force: false }).then(async () => {
     const existingAdmin = await User.findOne({ where: { username: 'admin' } });
     if (!existingAdmin) {
-        // Usar senha da variável de ambiente ou gerar uma temporária
-        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123_temp_' + Date.now();
+        // Usar senha da variável de ambiente ou gerar uma padrão
+        const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
         
         await User.create({
             username: 'admin',
@@ -232,7 +252,7 @@ sequelize.sync({ force: false }).then(async () => {
         });
         
         if (config.NODE_ENV === 'development') {
-            console.log('⚠️  Usuário admin criado com senha temporária:', adminPassword);
+            console.log('⚠️  Usuário admin criado com senha padrão:', adminPassword);
             console.log('🔐 IMPORTANTE: Altere a senha do admin no primeiro login!');
         } else {
             console.log('✅ Usuário admin criado com sucesso.');
@@ -247,14 +267,11 @@ sequelize.sync({ force: false }).then(async () => {
 
     app.listen(PORT, () => {
         console.log(`🚀 Servidor rodando na porta ${PORT}`);
-        console.log(`🔒 Modo de segurança: ${config.NODE_ENV === 'production' ? 'PRODUÇÃO' : 'DESENVOLVIMENTO'}`);
-        if (config.NODE_ENV === 'production') {
-            console.log(`🔐 HTTPS FORÇADO: Todas as requisições HTTP serão redirecionadas para HTTPS`);
-            console.log(`🛡️  HSTS ATIVO: Navegadores serão forçados a usar apenas HTTPS`);
-        }
-        console.log(`🌐 CORS habilitado para: ${config.ALLOWED_ORIGINS.join(', ')}`);
+        console.log(`🌐 Ambiente: ${config.NODE_ENV}`);
+        console.log(`🔒 CORS Origins: ${config.ALLOWED_ORIGINS.join(', ')}`);
+        console.log(`📊 Rate Limit: ${config.RATE_LIMIT_MAX_REQUESTS} req/${Math.ceil(config.RATE_LIMIT_WINDOW_MS / 1000)}s`);
     });
 }).catch(err => {
-    console.error('❌ Erro ao sincronizar o banco de dados e iniciar o servidor:', err);
+    console.error('❌ Erro ao conectar com o banco de dados:', err);
     process.exit(1);
 });

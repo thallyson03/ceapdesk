@@ -15,6 +15,14 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(255),
             allowNull: false,
             defaultValue: 'user'
+        },
+        email: {
+            type: DataTypes.STRING(255),
+            allowNull: false,
+            unique: true,
+            validate: {
+                isEmail: true
+            }
         }
     }, {
         hooks: {

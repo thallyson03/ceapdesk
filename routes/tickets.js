@@ -54,6 +54,20 @@ router.post('/', async (req, res) => {
             }
         }
         
+        // Tentar atribuir automaticamente o ticket ao melhor usuário disponível
+        let responsavelAutomatico = null;
+        if (areaResponsavel) {
+            try {
+                const bestUser = await notificationService.getBestUserForTicket(areaResponsavel);
+                if (bestUser) {
+                    responsavelAutomatico = bestUser.username;
+                    console.log(`✅ Ticket atribuído automaticamente para: ${bestUser.username} (carga: ${bestUser.workload || 0} tickets)`);
+                }
+            } catch (error) {
+                console.error('❌ Erro ao atribuir ticket automaticamente:', error);
+            }
+        }
+
         const novoTicket = await Ticket.create({
             titulo,
             descricao,
@@ -61,7 +75,7 @@ router.post('/', async (req, res) => {
             solicitante: req.user.username,
             prioridade: prioridade || 'media',
             status: 'aberto',
-            responsavel: null,
+            responsavel: responsavelAutomatico,
             diasSLA,
             dataLimiteSLA,
             statusSLA: 'dentro_prazo'
@@ -88,6 +102,144 @@ router.post('/', async (req, res) => {
     }
 });
 
+// Rota para atribuir ticket a um usuário específico
+router.put('/:id/assign', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { responsavel } = req.body;
+
+        const ticket = await Ticket.findByPk(id);
+        if (!ticket) {
+            return res.status(404).json({ error: 'Ticket não encontrado.' });
+        }
+
+        // Verificar se o usuário tem permissão para atribuir tickets
+        if (req.user.role !== 'admin') {
+            // Verificar se o usuário tem acesso ao setor do ticket
+            const hasSetor = req.user.setoresNomes && req.user.setoresNomes.includes(ticket.setor);
+            if (!hasSetor) {
+                return res.status(403).json({ error: 'Você não tem permissão para atribuir tickets deste setor.' });
+            }
+        }
+
+        // Verificar se o responsável existe e tem acesso ao setor
+        if (responsavel) {
+            const user = await User.findOne({
+                where: { username: responsavel },
+                include: [{
+                    model: Setor,
+                    as: 'setores',
+                    attributes: ['nome'],
+                    through: { attributes: [] }
+                }]
+            });
+
+            if (!user) {
+                return res.status(404).json({ error: 'Usuário responsável não encontrado.' });
+            }
+
+            const userSetores = user.setores.map(s => s.nome);
+            if (!userSetores.includes(ticket.setor)) {
+                return res.status(400).json({ error: 'O usuário não tem acesso ao setor deste ticket.' });
+            }
+        }
+
+        // Atualizar o responsável
+        await ticket.update({ responsavel });
+
+        // Registrar no histórico
+        await HistoricoTicket.create({
+            ticketId: ticket.id,
+            acao: responsavel ? 'atribuido' : 'desatribuido',
+            detalhes: responsavel ? `Ticket atribuído para ${responsavel}` : 'Ticket desatribuído',
+            usuario: req.user.username
+        });
+
+        console.log(`✅ Ticket ${id} ${responsavel ? 'atribuído para' : 'desatribuído de'} ${responsavel || 'ninguém'} por ${req.user.username}`);
+
+        res.status(200).json({ 
+            message: responsavel ? `Ticket atribuído para ${responsavel}` : 'Ticket desatribuído',
+            ticket 
+        });
+    } catch (error) {
+        console.error('Erro ao atribuir ticket:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para buscar usuários disponíveis para atribuição de tickets de um setor
+router.get('/setor/:setor/usuarios-disponiveis', async (req, res) => {
+    try {
+        const { setor } = req.params;
+
+        // Verificar se o usuário tem permissão para ver usuários do setor
+        if (req.user.role !== 'admin') {
+            const hasSetor = req.user.setoresNomes && req.user.setoresNomes.includes(setor);
+            if (!hasSetor) {
+                return res.status(403).json({ error: 'Você não tem permissão para visualizar usuários deste setor.' });
+            }
+        }
+
+        const users = await notificationService.getUsersForTicketAssignment(setor);
+
+        // Adicionar informação de carga de trabalho
+        const usersWithWorkload = await Promise.all(
+            users.map(async (user) => {
+                const openTickets = await Ticket.count({
+                    where: {
+                        responsavel: user.username,
+                        status: {
+                            [Op.in]: ['aberto', 'em_andamento']
+                        }
+                    }
+                });
+
+                return {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    role: user.role,
+                    workload: openTickets,
+                    setores: user.setores
+                };
+            })
+        );
+
+        // Ordenar por carga de trabalho (menor primeiro)
+        usersWithWorkload.sort((a, b) => a.workload - b.workload);
+
+        res.status(200).json(usersWithWorkload);
+    } catch (error) {
+        console.error('Erro ao buscar usuários disponíveis:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para buscar setores disponíveis para filtros
+router.get('/setores-disponiveis', async (req, res) => {
+    try {
+        let whereCondition = {};
+        
+        if (req.user.role !== 'admin') {
+            // Filtrar apenas setores do usuário
+            whereCondition.nome = {
+                [Op.in]: req.user.setoresNomes
+            };
+        }
+
+        const setores = await Setor.findAll({
+            where: whereCondition,
+            attributes: ['id', 'nome'],
+            order: [['nome', 'ASC']]
+        });
+
+        res.status(200).json(setores);
+    } catch (error) {
+        console.error('Erro ao buscar setores disponíveis:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
 // Rota para obter todos os tickets com filtros de busca, status e paginação
 router.get('/', async (req, res) => {
     try {
@@ -110,6 +262,12 @@ router.get('/', async (req, res) => {
         }
         if (status) {
             whereCondition.status = status;
+        }
+        if (req.query.setor) {
+            whereCondition.setor = req.query.setor;
+        }
+        if (req.query.prioridade) {
+            whereCondition.prioridade = req.query.prioridade;
         }
         if (startDate && endDate) {
             whereCondition.createdAt = {

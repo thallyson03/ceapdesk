@@ -203,27 +203,199 @@
                 return;
             }
             
-            const setoresHTML = setores.map(setor => `
-                <div class="setor-item">
-                    <div class="setor-info">
-                        <span class="setor-nome">${setor.nome}</span>
-                        <span class="setor-count">ID: ${setor.id}</span>
+            const setoresHTML = setores.map(setor => {
+                const isProtected = setor.nome === 'Administração';
+                return `
+                    <div class="setor-item ${isProtected ? 'border-warning' : ''}">
+                        <div class="setor-info">
+                            <span class="setor-nome">${setor.nome}</span>
+                            <span class="setor-count">ID: ${setor.id}</span>
+                            ${isProtected ? '<span class="badge bg-warning text-dark ms-2"><i class="fas fa-shield-alt me-1"></i>Protegido</span>' : ''}
+                        </div>
+                        ${isProtected ? 
+                            '<button class="btn btn-secondary btn-sm" disabled title="Setor essencial do sistema"><i class="fas fa-lock me-1"></i>Protegido</button>' :
+                            `<button class="btn-delete-setor" data-setor-id="${setor.id}" data-setor-nome="${setor.nome}">
+                                <i class="fas fa-trash me-1"></i>Excluir
+                            </button>`
+                        }
                     </div>
-                    <button class="btn-delete-setor" data-setor-id="${setor.id}" data-setor-nome="${setor.nome}">
-                        <i class="fas fa-trash me-1"></i>Excluir
-                    </button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             setoresLista.innerHTML = setoresHTML;
         }
 
-        // Função para excluir setor
-        async function deleteSetor(setorId, setorNome) {
-            if (!confirm(`Tem certeza que deseja excluir o setor "${setorNome}"?\n\n⚠️ ATENÇÃO: Esta ação não pode ser desfeita e pode afetar tickets e usuários associados a este setor.`)) {
-                return;
+        // Função para verificar dependências antes de excluir
+        async function checkDependencies(setorId, setorNome) {
+            try {
+                const response = await fetch(`/api/v1/setores/${setorId}/dependencies`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    if (!data.canDelete && !data.canForce) {
+                        showStatus(data.error, 'danger');
+                        return;
+                    }
+                    
+                    if (data.canDelete) {
+                        // Pode excluir sem problemas
+                        if (confirm(`Tem certeza que deseja excluir o setor "${setorNome}"?\n\n✅ Este setor pode ser excluído com segurança.`)) {
+                            deleteSetor(setorId, setorNome);
+                        }
+                    } else if (data.canForce) {
+                        // Tem dependências, mostrar modal de confirmação
+                        showDependenciesModal(data, setorId, setorNome);
+                    }
+                } else {
+                    const error = await response.json();
+                    showStatus(`Erro ao verificar dependências: ${error.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao verificar dependências:', error);
+                showStatus('Erro de conexão ao verificar dependências.', 'danger');
             }
+        }
+
+        // Função para mostrar modal de dependências
+        function showDependenciesModal(data, setorId, setorNome) {
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'dependenciesModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                Dependências Encontradas
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <strong>Setor:</strong> ${setorNome}<br>
+                                <strong>Status:</strong> ${data.message}
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-ticket-alt me-2"></i>Tickets (${data.dependencies.tickets.count})</h6>
+                                    ${data.dependencies.tickets.count > 0 ? `
+                                        <div class="list-group mb-3">
+                                            ${data.dependencies.tickets.samples.map(ticket => `
+                                                <div class="list-group-item list-group-item-action">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">${ticket.titulo}</h6>
+                                                        <small class="text-muted">#${ticket.id}</small>
+                                                    </div>
+                                                    <p class="mb-1">Status: ${ticket.status}</p>
+                                                    <small class="text-muted">Criado: ${new Date(ticket.createdAt).toLocaleDateString('pt-BR')}</small>
+                                                </div>
+                                            `).join('')}
+                                            ${data.dependencies.tickets.count > 10 ? `
+                                                <div class="list-group-item text-center text-muted">
+                                                    ... e mais ${data.dependencies.tickets.count - 10} tickets
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    ` : '<p class="text-muted">Nenhum ticket encontrado</p>'}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-users me-2"></i>Usuários (${data.dependencies.users.count})</h6>
+                                    ${data.dependencies.users.count > 0 ? `
+                                        <div class="list-group mb-3">
+                                            ${data.dependencies.users.samples.map(user => `
+                                                <div class="list-group-item list-group-item-action">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6 class="mb-1">${user.username}</h6>
+                                                        <small class="text-muted">#${user.id}</small>
+                                                    </div>
+                                                    <p class="mb-1">${user.email}</p>
+                                                </div>
+                                            `).join('')}
+                                            ${data.dependencies.users.count > 10 ? `
+                                                <div class="list-group-item text-center text-muted">
+                                                    ... e mais ${data.dependencies.users.count - 10} usuários
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    ` : '<p class="text-muted">Nenhum usuário encontrado</p>'}
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Ação:</strong> Se você prosseguir, os tickets serão movidos para o setor "Geral" e os usuários serão removidos deste setor.
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-danger" onclick="deleteSetorForce(${setorId}, '${setorNome}')">
+                                <i class="fas fa-trash me-2"></i>Excluir Forçadamente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
             
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Remover modal do DOM quando fechado
+            modal.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modal);
+            });
+        }
+
+        // Função para excluir setor forçadamente
+        async function deleteSetorForce(setorId, setorNome) {
+            try {
+                const response = await fetch(`/api/v1/setores/${setorId}?force=true`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showStatus(`Setor excluído com sucesso! ${result.migrated.tickets > 0 ? `${result.migrated.tickets} tickets migrados.` : ''} ${result.migrated.users > 0 ? `${result.migrated.users} usuários removidos.` : ''}`, 'success');
+                    loadSetores(); // Recarregar lista
+                    
+                    // Fechar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('dependenciesModal'));
+                    if (modal) modal.hide();
+                } else {
+                    const error = await response.json();
+                    showStatus(`Erro ao excluir setor: ${error.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Erro ao excluir setor:', error);
+                showStatus('Erro de conexão ao excluir setor.', 'danger');
+            }
+        }
+
+        // Função para excluir setor (simples, sem dependências)
+        async function deleteSetor(setorId, setorNome) {
             try {
                 const response = await fetch(`/api/v1/setores/${setorId}`, {
                     method: 'DELETE',
@@ -257,7 +429,7 @@
                 const button = e.target.closest('.btn-delete-setor');
                 const setorId = button.dataset.setorId;
                 const setorNome = button.dataset.setorNome;
-                deleteSetor(setorId, setorNome);
+                checkDependencies(setorId, setorNome);
             }
         });
 

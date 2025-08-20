@@ -26,6 +26,83 @@ class NotificationService {
     }
 
     /**
+     * Buscar usuários que podem atender tickets de um setor específico
+     * Inclui usuários que têm o setor como um de seus múltiplos setores
+     */
+    async getUsersForTicketAssignment(setorNome) {
+        try {
+            const users = await User.findAll({
+                attributes: ['id', 'username', 'email', 'role'],
+                include: [{
+                    model: Setor,
+                    as: 'setores',
+                    where: { nome: setorNome },
+                    attributes: ['id', 'nome'],
+                    through: { attributes: [] }
+                }],
+                where: {
+                    role: {
+                        [require('sequelize').Op.in]: ['user', 'admin']
+                    }
+                }
+            });
+
+            return users;
+        } catch (error) {
+            console.error('❌ Erro ao buscar usuários para atribuição de ticket:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Buscar o melhor usuário para atribuir um ticket baseado em carga de trabalho
+     */
+    async getBestUserForTicket(setorNome) {
+        try {
+            const { Ticket } = require('../models');
+            
+            // Buscar usuários do setor
+            const users = await this.getUsersForTicketAssignment(setorNome);
+            
+            if (!users || users.length === 0) {
+                return null;
+            }
+
+            // Se há apenas um usuário, retornar ele
+            if (users.length === 1) {
+                return users[0];
+            }
+
+            // Buscar carga de trabalho de cada usuário (tickets em aberto)
+            const usersWithWorkload = await Promise.all(
+                users.map(async (user) => {
+                    const openTickets = await Ticket.count({
+                        where: {
+                            responsavel: user.username,
+                            status: {
+                                [require('sequelize').Op.in]: ['aberto', 'em_andamento']
+                            }
+                        }
+                    });
+
+                    return {
+                        ...user.toJSON(),
+                        workload: openTickets
+                    };
+                })
+            );
+
+            // Ordenar por carga de trabalho (menor primeiro) e retornar o primeiro
+            usersWithWorkload.sort((a, b) => a.workload - b.workload);
+            
+            return usersWithWorkload[0];
+        } catch (error) {
+            console.error('❌ Erro ao buscar melhor usuário para ticket:', error);
+            throw error;
+        }
+    }
+
+    /**
      * Notificar usuários sobre novo ticket
      */
     async notifyNewTicket(ticket, setorNome) {
@@ -102,39 +179,7 @@ class NotificationService {
         }
     }
 
-    /**
-     * Testar serviço de notificação
-     */
-    async testNotification() {
-        try {
-            const status = await this.checkEmailServiceStatus();
-            
-            if (!status.configured) {
-                return {
-                    success: false,
-                    message: 'Serviço de email não configurado',
-                    status
-                };
-            }
 
-            // Testar conexão com Resend
-            const connectionTest = await emailService.testConnection();
-            
-            return {
-                success: connectionTest,
-                message: connectionTest ? 'Teste realizado com sucesso' : 'Falha no teste de conexão',
-                status
-            };
-
-        } catch (error) {
-            console.error('❌ Erro no teste de notificação:', error);
-            return {
-                success: false,
-                message: 'Erro no teste de notificação',
-                error: error.message
-            };
-        }
-    }
 }
 
 module.exports = new NotificationService();
