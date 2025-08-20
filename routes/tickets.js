@@ -54,20 +54,7 @@ router.post('/', async (req, res) => {
             }
         }
         
-        // Tentar atribuir automaticamente o ticket ao melhor usuário disponível
-        let responsavelAutomatico = null;
-        if (areaResponsavel) {
-            try {
-                const bestUser = await notificationService.getBestUserForTicket(areaResponsavel);
-                if (bestUser) {
-                    responsavelAutomatico = bestUser.username;
-                    console.log(`✅ Ticket atribuído automaticamente para: ${bestUser.username} (carga: ${bestUser.workload || 0} tickets)`);
-                }
-            } catch (error) {
-                console.error('❌ Erro ao atribuir ticket automaticamente:', error);
-            }
-        }
-
+        // Criar ticket SEM responsável automático - será atribuído posteriormente
         const novoTicket = await Ticket.create({
             titulo,
             descricao,
@@ -75,7 +62,7 @@ router.post('/', async (req, res) => {
             solicitante: req.user.username,
             prioridade: prioridade || 'media',
             status: 'aberto',
-            responsavel: responsavelAutomatico,
+            responsavel: null, // Sem responsável - será atribuído pelo setor
             diasSLA,
             dataLimiteSLA,
             statusSLA: 'dentro_prazo'

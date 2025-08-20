@@ -232,7 +232,22 @@
             window.location.href = '/login.html';
         });
 
+        // Carregar tickets iniciais
         fetchTickets();
+        
+        // Atualização automática a cada 30 segundos
+        setInterval(() => {
+            fetchTickets();
+            loadSLAAlerts();
+        }, 30000);
+        
+        // Atualização automática quando a página volta a ficar visível
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                fetchTickets();
+                loadSLAAlerts();
+            }
+        });
 
         document.getElementById('search-input').addEventListener('input', fetchTickets);
         document.getElementById('status-filter').addEventListener('change', fetchTickets);
@@ -332,6 +347,11 @@
                             ${ticket.statusSLA ? `
                                 <span class="badge ${getSLABadgeClass(ticket.statusSLA)}">
                                     <i class="fas fa-clock me-1"></i>${getSLABadgeText(ticket.statusSLA)}
+                                </span>
+                            ` : ''}
+                            ${!ticket.responsavel ? `
+                                <span class="badge bg-warning text-dark">
+                                    <i class="fas fa-user-clock me-1"></i>Aguardando Atribuição
                                 </span>
                             ` : ''}
                         </div>

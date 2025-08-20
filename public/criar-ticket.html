@@ -240,11 +240,13 @@
                 
                 if (response.ok) {
                     const novoTicket = await response.json();
-                    statusMessage.innerHTML = `<div class="alert alert-success">Ticket #${formatTicketId(novoTicket.id)} criado com sucesso! Você será redirecionado para o dashboard em 3 segundos.</div>`;
+                    statusMessage.innerHTML = `<div class="alert alert-success">Ticket #${formatTicketId(novoTicket.id)} criado com sucesso! Redirecionando...</div>`;
                     form.reset();
+                    
+                    // Redirecionar imediatamente para o dashboard
                     setTimeout(() => {
                         window.location.href = '/dashboard.html';
-                    }, 3000);
+                    }, 1000);
                 } else {
                     const error = await response.json();
                     statusMessage.innerHTML = `<div class="alert alert-danger">Erro ao criar o ticket: ${error.error}</div>`;
