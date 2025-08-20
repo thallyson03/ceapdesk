@@ -68,47 +68,48 @@ app.use(helmet({
     crossOriginResourcePolicy: false
 }));
 
-// Rate limiting global
-const limiter = rateLimit({
-    windowMs: config.RATE_LIMIT_WINDOW_MS,
-    max: config.RATE_LIMIT_MAX_REQUESTS,
-    message: {
-        error: 'Muitas requisições. Tente novamente mais tarde.',
-        retryAfter: Math.ceil(config.RATE_LIMIT_WINDOW_MS / 1000)
-    },
-    standardHeaders: true,
-    legacyHeaders: false,
-    // Configuração para trabalhar com proxy (Nginx)
-    keyGenerator: (req) => {
-        return req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
-    },
-    skip: (req) => {
-        // Pular rate limiting para páginas HTML e recursos estáticos
-        return req.path.endsWith('.html') || 
-               req.path.endsWith('.css') || 
-               req.path.endsWith('.js') || 
-               req.path.endsWith('.ico') ||
-               req.path === '/' ||
-               req.path === '/health' || 
-               req.path === '/api/health';
-    }
-});
-app.use(limiter);
+// Rate limiting desabilitado - Sem limite de requisições
+// const limiter = rateLimit({
+//     windowMs: config.RATE_LIMIT_WINDOW_MS,
+//     max: config.RATE_LIMIT_MAX_REQUESTS,
+//     message: {
+//         error: 'Muitas requisições. Tente novamente mais tarde.',
+//         retryAfter: Math.ceil(config.RATE_LIMIT_WINDOW_MS / 1000)
+//     },
+//     standardHeaders: true,
+//     legacyHeaders: false,
+//     // Configuração para trabalhar com proxy (Nginx)
+//     keyGenerator: (req) => {
+//         return req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
+//     },
+//     skip: (req) => {
+//         // Pular rate limiting para páginas HTML e recursos estáticos
+//         return req.path.endsWith('.html') || 
+//                req.path.endsWith('.css') || 
+//                req.path.endsWith('.js') || 
+//                req.path.endsWith('.ico') ||
+//                req.path === '/' ||
+//                req.path === '/health' || 
+//                req.path === '/api/health' ||
+//                req.path.startsWith('/api/v1/reports'); // Pular rate limiting para relatórios
+//     }
+// });
+// app.use(limiter);
 
-// Rate limiting específico para login
-const loginLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 5, // 5 tentativas
-    message: {
-        error: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
-        retryAfter: 900
-    },
-    skipSuccessfulRequests: true,
-    // Configuração para trabalhar com proxy (Nginx)
-    keyGenerator: (req) => {
-        return req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
-    }
-});
+// Rate limiting específico para login desabilitado
+// const loginLimiter = rateLimit({
+//     windowMs: 15 * 60 * 1000, // 15 minutos
+//     max: 5, // 5 tentativas
+//     message: {
+//         error: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
+//         retryAfter: 900
+//     },
+//     skipSuccessfulRequests: true,
+//     // Configuração para trabalhar com proxy (Nginx)
+//     keyGenerator: (req) => {
+//         return req.headers['x-forwarded-for'] || req.ip || req.connection.remoteAddress;
+//     }
+// });
 
 // CORS configurado com origens específicas - Mais flexível
 app.use(cors({
@@ -157,8 +158,8 @@ app.use((err, req, res, next) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Aplicar rate limiting específico na rota de login
-app.use('/api/v1/users/login', loginLimiter);
+// Rate limiting desabilitado para todas as rotas
+// app.use('/api/v1/users/login', loginLimiter);
 
 // Rotas da API
 app.use('/api/v1/tickets', ticketsRoutes);
