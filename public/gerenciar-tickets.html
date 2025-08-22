@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Tickets</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .ticket-card {
+            border-left: 4px solid #007bff;
+            margin-bottom: 1rem;
+        }
+        .ticket-card.alta {
+            border-left-color: #dc3545;
+        }
+        .ticket-card.media {
+            border-left-color: #ffc107;
+        }
+        .ticket-card.baixa {
+            border-left-color: #28a745;
+        }
+        .status-badge {
+            font-size: 0.8em;
+        }
+        .workload-indicator {
+            font-size: 0.7em;
+            color: #6c757d;
+        }
+        .user-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .setor-tag {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/dashboard.html" class="btn btn-secondary">← Voltar para o Dashboard</a>
+            <div class="d-flex align-items-center gap-2">
+                <span id="user-info" class="me-2 fw-bold"></span>
+                <button id="logout-btn" class="btn btn-danger">Sair</button>
+            </div>
+        </div>
+        
+        <h1 class="mb-4">Gerenciar Tickets</h1>
+        
+        <!-- Filtros -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <label for="filtro-setor" class="form-label">Filtrar por Setor</label>
+                <select id="filtro-setor" class="form-select">
+                    <option value="">Todos os setores</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filtro-status" class="form-label">Filtrar por Status</label>
+                <select id="filtro-status" class="form-select">
+                    <option value="">Todos os status</option>
+                    <option value="aberto">Aberto</option>
+                    <option value="em_andamento">Em Andamento</option>
+                    <option value="resolvido">Resolvido</option>
+                    <option value="fechado">Fechado</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="filtro-prioridade" class="form-label">Filtrar por Prioridade</label>
+                <select id="filtro-prioridade" class="form-select">
+                    <option value="">Todas as prioridades</option>
+                    <option value="alta">Alta</option>
+                    <option value="media">Média</option>
+                    <option value="baixa">Baixa</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="busca" class="form-label">Buscar</label>
+                <input type="text" id="busca" class="form-control" placeholder="Título ou descrição...">
+            </div>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary" id="total-tickets">0</h5>
+                        <p class="card-text">Total de Tickets</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning" id="tickets-abertos">0</h5>
+                        <p class="card-text">Em Aberto</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-info" id="tickets-andamento">0</h5>
+                        <p class="card-text">Em Andamento</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-success" id="tickets-resolvidos">0</h5>
+                        <p class="card-text">Resolvidos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de Tickets -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Tickets</h5>
+                        <div>
+                            <button id="atribuir-automatico" class="btn btn-success btn-sm">
+                                <i class="fas fa-magic"></i> Atribuir Automaticamente
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="tickets-container">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Paginação -->
+                        <nav aria-label="Navegação de tickets" class="mt-4">
+                            <ul class="pagination justify-content-center" id="pagination">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para atribuir ticket -->
+    <div class="modal fade" id="atribuirModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Atribuir Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Ticket:</strong> <span id="modal-ticket-titulo"></span></p>
+                    <p><strong>Setor:</strong> <span id="modal-ticket-setor"></span></p>
+                    
+                    <label for="modal-responsavel" class="form-label">Responsável:</label>
+                    <select id="modal-responsavel" class="form-select">
+                        <option value="">Selecione um responsável...</option>
+                    </select>
+                    
+                    <div id="modal-usuarios-info" class="mt-3">
+                        <h6>Usuários Disponíveis:</h6>
+                        <div id="modal-usuarios-lista"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="modal-salvar">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const userInfo = document.getElementById('user-info');
+            const logoutBtn = document.getElementById('logout-btn');
+            const ticketsContainer = document.getElementById('tickets-container');
+            const pagination = document.getElementById('pagination');
+            
+            let currentPage = 1;
+            let totalPages = 1;
+            let tickets = [];
+            let currentTicket = null;
+
+            const parseJwt = (token) => {
+                try {
+                    return JSON.parse(atob(token.split('.')[1]));
+                } catch (e) {
+                    return null;
+                }
+            };
+            
+            const payload = parseJwt(token);
+            if (payload) {
+                userInfo.innerHTML = `<i class="fas fa-user me-1"></i>Olá, ${payload.username}!`;
+            } else {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            });
+
+            // Função para buscar tickets
+            const fetchTickets = async (page = 1) => {
+                try {
+                    const params = new URLSearchParams({
+                        page: page,
+                        limit: 10
+                    });
+
+                    // Adicionar filtros
+                    const filtroSetor = document.getElementById('filtro-setor').value;
+                    const filtroStatus = document.getElementById('filtro-status').value;
+                    const filtroPrioridade = document.getElementById('filtro-prioridade').value;
+                    const busca = document.getElementById('busca').value;
+
+                    if (filtroSetor) params.append('setor', filtroSetor);
+                    if (filtroStatus) params.append('status', filtroStatus);
+                    if (filtroPrioridade) params.append('prioridade', filtroPrioridade);
+                    if (busca) params.append('search', busca);
+
+                    const response = await fetch(`/api/v1/tickets?${params}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+
+                    const data = await response.json();
+                    tickets = data.tickets;
+                    currentPage = data.pagination.currentPage;
+                    totalPages = data.pagination.totalPages;
+
+                    renderTickets();
+                    renderPagination();
+                    updateStats();
+                } catch (error) {
+                    console.error('Erro ao buscar tickets:', error);
+                    showAlert('Erro ao carregar tickets', 'danger');
+                }
+            };
+
+            // Função para renderizar tickets
+            const renderTickets = () => {
+                if (tickets.length === 0) {
+                    ticketsContainer.innerHTML = '<div class="text-center text-muted">Nenhum ticket encontrado</div>';
+                    return;
+                }
+
+                ticketsContainer.innerHTML = tickets.map(ticket => `
+                    <div class="card ticket-card ${ticket.prioridade}">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6 class="card-title">${ticket.titulo}</h6>
+                                    <p class="card-text text-muted">${ticket.descricao.substring(0, 100)}${ticket.descricao.length > 100 ? '...' : ''}</p>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <span class="badge bg-primary status-badge">${ticket.setor}</span>
+                                        <span class="badge bg-${getStatusColor(ticket.status)} status-badge">${formatStatus(ticket.status)}</span>
+                                        <span class="badge bg-${getPrioridadeColor(ticket.prioridade)} status-badge">${formatPrioridade(ticket.prioridade)}</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        Solicitante: ${ticket.solicitante} | 
+                                        Criado: ${new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
+                                    </small>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="mb-2">
+                                        <strong>Responsável:</strong><br>
+                                        <span class="text-muted">${ticket.responsavel || 'Não atribuído'}</span>
+                                    </div>
+                                    <div class="btn-group-vertical">
+                                        <button class="btn btn-outline-primary btn-sm" onclick="abrirModalAtribuir(${ticket.id})">
+                                            <i class="fas fa-user-plus"></i> Atribuir
+                                        </button>
+                                        <a href="/ticket-detalhes.html?id=${ticket.id}" class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-eye"></i> Ver Detalhes
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            // Função para renderizar paginação
+            const renderPagination = () => {
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+
+                let paginationHTML = '';
+                
+                // Botão anterior
+                if (currentPage > 1) {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Anterior</a></li>`;
+                }
+
+                // Páginas
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPage) {
+                        paginationHTML += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+                    } else {
+                        paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+                    }
+                }
+
+                // Botão próximo
+                if (currentPage < totalPages) {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Próximo</a></li>`;
+                }
+
+                pagination.innerHTML = paginationHTML;
+            };
+
+            // Função para atualizar estatísticas
+            const updateStats = () => {
+                const stats = {
+                    total: tickets.length,
+                    abertos: tickets.filter(t => t.status === 'aberto').length,
+                    andamento: tickets.filter(t => t.status === 'em_andamento').length,
+                    resolvidos: tickets.filter(t => t.status === 'resolvido').length
+                };
+
+                document.getElementById('total-tickets').textContent = stats.total;
+                document.getElementById('tickets-abertos').textContent = stats.abertos;
+                document.getElementById('tickets-andamento').textContent = stats.andamento;
+                document.getElementById('tickets-resolvidos').textContent = stats.resolvidos;
+            };
+
+            // Funções auxiliares
+            const getStatusColor = (status) => {
+                const colors = {
+                    'aberto': 'warning',
+                    'em_andamento': 'info',
+                    'resolvido': 'success',
+                    'fechado': 'secondary'
+                };
+                return colors[status] || 'secondary';
+            };
+
+            const getPrioridadeColor = (prioridade) => {
+                const colors = {
+                    'alta': 'danger',
+                    'media': 'warning',
+                    'baixa': 'success'
+                };
+                return colors[prioridade] || 'secondary';
+            };
+
+            const formatStatus = (status) => {
+                const labels = {
+                    'aberto': 'Aberto',
+                    'em_andamento': 'Em Andamento',
+                    'resolvido': 'Resolvido',
+                    'fechado': 'Fechado'
+                };
+                return labels[status] || status;
+            };
+
+            const formatPrioridade = (prioridade) => {
+                const labels = {
+                    'alta': 'Alta',
+                    'media': 'Média',
+                    'baixa': 'Baixa'
+                };
+                return labels[prioridade] || prioridade;
+            };
+
+            const showAlert = (message, type) => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.container-fluid').firstChild);
+                
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            };
+
+            // Função para abrir modal de atribuição
+            window.abrirModalAtribuir = async (ticketId) => {
+                const ticket = tickets.find(t => t.id === ticketId);
+                if (!ticket) return;
+
+                currentTicket = ticket;
+                
+                document.getElementById('modal-ticket-titulo').textContent = ticket.titulo;
+                document.getElementById('modal-ticket-setor').textContent = ticket.setor;
+                
+                // Buscar usuários disponíveis para o setor
+                try {
+                    const response = await fetch(`/api/v1/tickets/setor/${ticket.setor}/usuarios-disponiveis`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const usuarios = await response.json();
+                        
+                        const select = document.getElementById('modal-responsavel');
+                        select.innerHTML = '<option value="">Selecione um responsável...</option>';
+                        
+                        usuarios.forEach(usuario => {
+                            const option = document.createElement('option');
+                            option.value = usuario.username;
+                            option.textContent = usuario.username;
+                            select.appendChild(option);
+                        });
+
+                        // Mostrar lista de usuários
+                        const listaUsuarios = document.getElementById('modal-usuarios-lista');
+                        listaUsuarios.innerHTML = usuarios.map(usuario => `
+                            <div class="card mb-2">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>${usuario.username}</strong>
+                                            <div class="workload-indicator">
+                                                Carga: ${usuario.workload} tickets | 
+                                                Setores: ${usuario.setores.map(s => s.nome).join(', ')}
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="selecionarUsuario('${usuario.username}')">
+                                            Selecionar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        const modal = new bootstrap.Modal(document.getElementById('atribuirModal'));
+                        modal.show();
+                    } else {
+                        showAlert('Erro ao carregar usuários disponíveis', 'danger');
+                    }
+                } catch (error) {
+                    console.error('Erro ao buscar usuários:', error);
+                    showAlert('Erro ao carregar usuários', 'danger');
+                }
+            };
+
+            // Função para selecionar usuário
+            window.selecionarUsuario = (username) => {
+                document.getElementById('modal-responsavel').value = username;
+            };
+
+            // Event listener para salvar atribuição
+            document.getElementById('modal-salvar').addEventListener('click', async () => {
+                if (!currentTicket) return;
+
+                const responsavel = document.getElementById('modal-responsavel').value;
+                
+                try {
+                    const response = await fetch(`/api/v1/tickets/${currentTicket.id}/assign`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ responsavel })
+                    });
+
+                    if (response.ok) {
+                        showAlert('Ticket atribuído com sucesso!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('atribuirModal')).hide();
+                        fetchTickets(currentPage); // Recarregar tickets
+                    } else {
+                        const error = await response.json();
+                        showAlert(`Erro ao atribuir ticket: ${error.error}`, 'danger');
+                    }
+                } catch (error) {
+                    console.error('Erro ao atribuir ticket:', error);
+                    showAlert('Erro de conexão', 'danger');
+                }
+            });
+
+            // Função para mudar página
+            window.changePage = (page) => {
+                fetchTickets(page);
+            };
+
+            // Event listeners para filtros
+            document.getElementById('filtro-setor').addEventListener('change', () => fetchTickets(1));
+            document.getElementById('filtro-status').addEventListener('change', () => fetchTickets(1));
+            document.getElementById('filtro-prioridade').addEventListener('change', () => fetchTickets(1));
+            
+            let searchTimeout;
+            document.getElementById('busca').addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    fetchTickets(1);
+                }, 500);
+            });
+
+            // Função para carregar setores disponíveis
+            const fetchSetores = async () => {
+                try {
+                    const response = await fetch('/api/v1/tickets/setores-disponiveis', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const setores = await response.json();
+                        const select = document.getElementById('filtro-setor');
+                        
+                        setores.forEach(setor => {
+                            const option = document.createElement('option');
+                            option.value = setor.nome;
+                            option.textContent = setor.nome;
+                            select.appendChild(option);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar setores:', error);
+                }
+            };
+
+            // Carregar dados iniciais
+            fetchSetores();
+            fetchTickets();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gráfico - Sistema de Tickets</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: none;
+            transition: transform 0.2s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .metric-card.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .metric-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .metric-card.info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .metric-card.danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .performance-table {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .performance-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .performance-table tbody tr:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        .tab-content {
+            padding: 20px 0;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 10px 10px 0 0;
+            margin-right: 5px;
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+        .nav-tabs .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-0 text-primary">
+                    <i class="fas fa-chart-line me-2"></i>Dashboard Gráfico
+                </h1>
+                <p class="text-muted mb-0">Análise avançada de tickets e usuários</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="/dashboard.html" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Dashboard
+                </a>
+                <span id="user-info" class="me-2 fw-bold"></span>
+                <button id="logout-btn" class="btn btn-danger">
+                    <i class="fas fa-sign-out-alt me-1"></i>Sair
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-section">
+            <div class="row align-items-end">
+                <div class="col-md-3">
+                    <label for="periodo-filtro" class="form-label fw-bold">Período de Análise</label>
+                    <select class="form-select" id="periodo-filtro">
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="30" selected>Últimos 30 dias</option>
+                        <option value="90">Últimos 90 dias</option>
+                        <option value="180">Últimos 6 meses</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="setor-filtro" class="form-label fw-bold">Setor</label>
+                    <select class="form-select" id="setor-filtro">
+                        <option value="">Todos os Setores</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="usuario-filtro" class="form-label fw-bold">Usuário</label>
+                    <select class="form-select" id="usuario-filtro">
+                        <option value="">Todos os Usuários</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="button" class="btn btn-primary w-100" id="aplicar-filtros">
+                        <i class="fas fa-filter me-1"></i>Aplicar Filtros
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards de Métricas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card metric-card success text-center p-3">
+                    <div class="metric-value" id="total-tickets">0</div>
+                    <div class="metric-label">Total de Tickets</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card info text-center p-3">
+                    <div class="metric-value" id="taxa-resolucao">0%</div>
+                    <div class="metric-label">Taxa de Resolução</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card warning text-center p-3">
+                    <div class="metric-value" id="tempo-medio">0h</div>
+                    <div class="metric-label">Tempo Médio Resolução</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card metric-card danger text-center p-3">
+                    <div class="metric-value" id="sla-vencido">0</div>
+                    <div class="metric-label">SLA Vencido</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs de Navegação -->
+        <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                    <i class="fas fa-chart-pie me-1"></i>Visão Geral
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tickets-tab" data-bs-toggle="tab" data-bs-target="#tickets" type="button" role="tab">
+                    <i class="fas fa-ticket-alt me-1"></i>Tickets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios" type="button" role="tab">
+                    <i class="fas fa-users me-1"></i>Usuários
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="setores-tab" data-bs-toggle="tab" data-bs-target="#setores" type="button" role="tab">
+                    <i class="fas fa-building me-1"></i>Setores
+                </button>
+            </li>
+        </ul>
+
+        <!-- Conteúdo das Tabs -->
+        <div class="tab-content" id="dashboardTabContent">
+            <!-- Tab Visão Geral -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-chart-line me-2"></i>Tendência Temporal
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="tendenciaChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-chart-pie me-2"></i>Distribuição por Status
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-chart-bar me-2"></i>Performance de SLA
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="slaChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-tags me-2"></i>Top Assuntos
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="assuntosChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Tickets -->
+            <div class="tab-pane fade" id="tickets" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-chart-bar me-2"></i>Distribuição por Prioridade
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="prioridadeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-chart-bar me-2"></i>Distribuição por Setor
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="setorChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Usuários -->
+            <div class="tab-pane fade" id="usuarios" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-table me-2"></i>Performance dos Usuários
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover performance-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Usuário</th>
+                                                <th class="text-center">Total Tickets</th>
+                                                <th class="text-center">Resolvidos</th>
+                                                <th class="text-center">Taxa Resolução</th>
+                                                <th class="text-center">Tempo Médio</th>
+                                                <th class="text-center">SLA Compliance</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="usuarios-table-body">
+                                            <tr>
+                                                <td colspan="6" class="text-center">
+                                                    <div class="loading-spinner">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Carregando...</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Setores -->
+            <div class="tab-pane fade" id="setores" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card dashboard-card">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="mb-0 text-primary">
+                                    <i class="fas fa-table me-2"></i>Performance por Setor
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover performance-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Setor</th>
+                                                <th class="text-center">Total Tickets</th>
+                                                <th class="text-center">Resolvidos</th>
+                                                <th class="text-center">Taxa Resolução</th>
+                                                <th class="text-center">Tempo Médio</th>
+                                                <th class="text-center">SLA Compliance</th>
+                                                <th class="text-center">SLA Vencido</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="setores-table-body">
+                                            <tr>
+                                                <td colspan="7" class="text-center">
+                                                    <div class="loading-spinner">
+                                                        <div class="spinner-border text-primary" role="status">
+                                                            <span class="visually-hidden">Carregando...</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variáveis globais para os gráficos
+        let charts = {};
+
+        // Função para decodificar JWT token
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (error) {
+                console.error('Erro ao decodificar token:', error);
+                return null;
+            }
+        }
+
+        // Função para destruir gráficos existentes
+        function destroyChart(chartId) {
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+                charts[chartId] = null;
+            }
+        }
+
+        // Função para criar gráfico de tendência temporal
+        function createTendenciaChart(data) {
+            destroyChart('tendenciaChart');
+            
+            const ctx = document.getElementById('tendenciaChart').getContext('2d');
+            charts['tendenciaChart'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(item => {
+                        const date = new Date(item.data);
+                        return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                    }),
+                    datasets: [{
+                        label: 'Tickets Criados',
+                        data: data.map(item => item.criados),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Tickets Resolvidos',
+                        data: data.map(item => item.resolvidos),
+                        borderColor: '#11998e',
+                        backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para criar gráfico de pizza
+        function createPieChart(chartId, data, labelKey, valueKey, colors) {
+            destroyChart(chartId);
+            
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(item => item[labelKey]),
+                    datasets: [{
+                        data: data.map(item => item[valueKey]),
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para criar gráfico de barras
+        function createBarChart(chartId, data, labelKey, valueKey, colors) {
+            destroyChart(chartId);
+            
+            const ctx = document.getElementById(chartId).getContext('2d');
+            charts[chartId] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(item => item[labelKey]),
+                    datasets: [{
+                        label: 'Quantidade',
+                        data: data.map(item => item[valueKey]),
+                        backgroundColor: colors,
+                        borderColor: colors.map(color => color.replace('0.8', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para carregar dados do dashboard
+        async function loadDashboardData() {
+            try {
+                const periodo = document.getElementById('periodo-filtro').value;
+                const setor = document.getElementById('setor-filtro').value;
+                const usuario = document.getElementById('usuario-filtro').value;
+                
+                const params = new URLSearchParams({ periodo });
+                if (setor) params.append('setor', setor);
+                if (usuario) params.append('usuario', usuario);
+                
+                const response = await fetch(`/api/v1/analytics/dashboard-completo?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar dados do dashboard');
+                }
+
+                const data = await response.json();
+
+                // Atualizar métricas
+                const totalTickets = data.ticketsPorStatus.reduce((sum, item) => sum + item.total, 0);
+                const ticketsFechados = data.ticketsPorStatus.find(item => item.status === 'fechado')?.total || 0;
+                const slaVencido = data.slaStats.find(item => item.statusSLA === 'vencido')?.total || 0;
+
+                document.getElementById('total-tickets').textContent = totalTickets;
+                document.getElementById('taxa-resolucao').textContent = totalTickets > 0 ? Math.round((ticketsFechados / totalTickets) * 100) + '%' : '0%';
+                document.getElementById('sla-vencido').textContent = slaVencido;
+
+                // Criar gráficos
+                createTendenciaChart(data.tendenciaTemporal);
+                
+                createPieChart('statusChart', data.ticketsPorStatus, 'status', 'total', [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(255, 193, 7, 0.8)'
+                ]);
+
+                createPieChart('slaChart', data.slaStats, 'statusSLA', 'total', [
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)'
+                ]);
+
+                createBarChart('prioridadeChart', data.ticketsPorPrioridade, 'prioridade', 'total', [
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(17, 153, 142, 0.8)'
+                ]);
+
+                createBarChart('setorChart', data.ticketsPorSetor, 'setor', 'total', [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(108, 117, 125, 0.8)'
+                ]);
+
+                createBarChart('assuntosChart', data.assuntosPopulares.slice(0, 5), 'nome', 'total', [
+                    'rgba(102, 126, 234, 0.8)',
+                    'rgba(17, 153, 142, 0.8)',
+                    'rgba(255, 193, 7, 0.8)',
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(108, 117, 125, 0.8)'
+                ]);
+
+            } catch (error) {
+                console.error('Erro ao carregar dados do dashboard:', error);
+            }
+        }
+
+        // Função para carregar performance de usuários
+        async function loadUsuariosPerformance() {
+            try {
+                const periodo = document.getElementById('periodo-filtro').value;
+                const setor = document.getElementById('setor-filtro').value;
+                const usuario = document.getElementById('usuario-filtro').value;
+                
+                const params = new URLSearchParams({ periodo });
+                if (setor) params.append('setor', setor);
+                if (usuario) params.append('usuario', usuario);
+                
+                const response = await fetch(`/api/v1/analytics/usuarios-performance?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar performance de usuários');
+                }
+
+                const data = await response.json();
+                const tableBody = document.getElementById('usuarios-table-body');
+                
+                tableBody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                    <span class="text-white fw-bold">${item.usuario.charAt(0).toUpperCase()}</span>
+                                </div>
+                                ${item.usuario}
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary fs-6">${item.totalTickets}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-success fs-6">${item.ticketsResolvidos}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-info fs-6">${item.taxaResolucao}%</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-warning fs-6">${item.tempoMedioResolucao}h</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-${item.slaCompliance >= 90 ? 'success' : item.slaCompliance >= 70 ? 'warning' : 'danger'} fs-6">${item.slaCompliance}%</span>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Erro ao carregar performance de usuários:', error);
+            }
+        }
+
+        // Função para carregar performance de setores
+        async function loadSetoresPerformance() {
+            try {
+                const periodo = document.getElementById('periodo-filtro').value;
+                const setor = document.getElementById('setor-filtro').value;
+                const usuario = document.getElementById('usuario-filtro').value;
+                
+                const params = new URLSearchParams({ periodo });
+                if (setor) params.append('setor', setor);
+                if (usuario) params.append('usuario', usuario);
+                
+                const response = await fetch(`/api/v1/analytics/performance-setores?${params}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Erro ao carregar performance de setores');
+                }
+
+                const data = await response.json();
+                const tableBody = document.getElementById('setores-table-body');
+                
+                tableBody.innerHTML = data.map(item => `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                    <span class="text-white fw-bold">${item.setor.charAt(0).toUpperCase()}</span>
+                                </div>
+                                ${item.setor}
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary fs-6">${item.totalTickets}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-success fs-6">${item.ticketsResolvidos}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-info fs-6">${item.taxaResolucao}%</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-warning fs-6">${item.tempoMedioResolucao}h</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-${item.slaCompliance >= 90 ? 'success' : item.slaCompliance >= 70 ? 'warning' : 'danger'} fs-6">${item.slaCompliance}%</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-danger fs-6">${item.slaVencido}</span>
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Erro ao carregar performance de setores:', error);
+            }
+        }
+
+        // Função para carregar dados dos filtros
+        async function loadFilterData() {
+            try {
+                // Carregar usuários
+                const usersResponse = await fetch('/api/v1/analytics/users', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (usersResponse.ok) {
+                    const users = await usersResponse.json();
+                    const usuarioSelect = document.getElementById('usuario-filtro');
+                    usuarioSelect.innerHTML = '<option value="">Todos os Usuários</option>';
+                    users.forEach(user => {
+                        usuarioSelect.innerHTML += `<option value="${user}">${user}</option>`;
+                    });
+                }
+
+                // Carregar setores
+                const setoresResponse = await fetch('/api/v1/analytics/setores', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (setoresResponse.ok) {
+                    const setores = await setoresResponse.json();
+                    const setorSelect = document.getElementById('setor-filtro');
+                    setorSelect.innerHTML = '<option value="">Todos os Setores</option>';
+                    setores.forEach(setor => {
+                        setorSelect.innerHTML += `<option value="${setor}">${setor}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar dados dos filtros:', error);
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const payload = parseJwt(token);
+            if (!payload || payload.role !== 'admin') {
+                document.body.innerHTML = '<div class="alert alert-danger text-center m-5">Acesso negado. Apenas administradores podem acessar esta página.</div>';
+                return;
+            }
+
+            const userInfo = document.getElementById('user-info');
+            userInfo.innerHTML = `<i class="fas fa-user me-1"></i>Olá, ${payload.username}!`;
+
+            // Carregar dados dos filtros primeiro
+            await loadFilterData();
+
+            // Carregar dados iniciais
+            loadDashboardData();
+            loadUsuariosPerformance();
+            loadSetoresPerformance();
+
+            // Event listener para filtros
+            document.getElementById('aplicar-filtros').addEventListener('click', () => {
+                loadDashboardData();
+                loadUsuariosPerformance();
+                loadSetoresPerformance();
+            });
+
+            // Event listener para mudança de período
+            document.getElementById('periodo-filtro').addEventListener('change', () => {
+                loadDashboardData();
+                loadUsuariosPerformance();
+                loadSetoresPerformance();
+            });
+
+            // Event listeners para mudanças nos filtros individuais
+            document.getElementById('setor-filtro').addEventListener('change', () => {
+                loadDashboardData();
+                loadUsuariosPerformance();
+                loadSetoresPerformance();
+            });
+
+            document.getElementById('usuario-filtro').addEventListener('change', () => {
+                loadDashboardData();
+                loadUsuariosPerformance();
+                loadSetoresPerformance();
+            });
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
