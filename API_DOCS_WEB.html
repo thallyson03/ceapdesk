@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📚 Documentação da API - Sistema de Tickets</title>
+    <title>📚 Documentação Completa - Sistema de Tickets CEAPE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
@@ -55,6 +55,20 @@
 
         .nav-menu {
             padding: 1rem 0;
+        }
+
+        .nav-section {
+            margin: 1rem 0;
+        }
+
+        .nav-section-title {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 0.5rem 1.5rem;
+            margin: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
         .nav-item {
@@ -288,6 +302,120 @@
             padding: 1rem;
             margin: 1rem 0;
         }
+
+        /* Estilos para as novas seções */
+        .deploy-step, .update-step, .backup-strategy, .error-solution, .log-commands, .monitoring-commands, .health-checks, .alerts, .security-config, .security-practices, .audit-logs, .audit-tables, .audit-queries {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            background-color: rgba(13, 110, 253, 0.05);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .deploy-step h5, .update-step h5, .backup-strategy h5, .error-solution h5, .log-commands h5, .monitoring-commands h5, .health-checks h5, .alerts h5, .security-config h5, .security-practices h5, .audit-logs h5, .audit-tables h5, .audit-queries h5 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .update-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .env-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .env-dev, .env-prod {
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .env-dev {
+            background-color: rgba(25, 135, 84, 0.1);
+            border-color: var(--success-color);
+        }
+
+        .env-prod {
+            background-color: rgba(220, 53, 69, 0.1);
+            border-color: var(--danger-color);
+        }
+
+        .architecture-layer {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            height: 100%;
+        }
+
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .tech-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .tech-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .installation-step {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            border-left: 4px solid var(--success-color);
+            background-color: rgba(25, 135, 84, 0.05);
+            border-radius: 0 8px 8px 0;
+        }
+
+        .installation-step h5 {
+            color: var(--success-color);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .database-schema {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            margin: 1rem 0;
+        }
+
+        .log-analysis {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            margin: 1rem 0;
+        }
+
+        /* Responsividade para mobile */
+        @media (max-width: 768px) {
+            .env-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .tech-stack {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -303,60 +431,154 @@
             <p>Sistema de Tickets</p>
         </div>
         <nav class="nav-menu">
-            <div class="nav-item">
-                <a href="#overview" class="nav-link active" onclick="scrollToSection('overview')">
-                    <i class="fas fa-home me-2"></i>Visão Geral
-                </a>
+            <!-- VISÃO GERAL -->
+            <div class="nav-section">
+                <div class="nav-section-title">Visão Geral</div>
+                <div class="nav-item">
+                    <a href="#introducao" class="nav-link active" onclick="scrollToSection('introducao')">
+                        <i class="fas fa-home me-2"></i>Introdução
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#arquitetura" class="nav-link" onclick="scrollToSection('arquitetura')">
+                        <i class="fas fa-sitemap me-2"></i>Arquitetura
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#tecnologias" class="nav-link" onclick="scrollToSection('tecnologias')">
+                        <i class="fas fa-code me-2"></i>Tecnologias
+                    </a>
+                </div>
             </div>
-            <div class="nav-item">
-                <a href="#authentication" class="nav-link" onclick="scrollToSection('authentication')">
-                    <i class="fas fa-key me-2"></i>Autenticação
-                </a>
+
+            <!-- CONFIGURAÇÃO -->
+            <div class="nav-section">
+                <div class="nav-section-title">Configuração</div>
+                <div class="nav-item">
+                    <a href="#instalacao" class="nav-link" onclick="scrollToSection('instalacao')">
+                        <i class="fas fa-download me-2"></i>Instalação
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#configuracao-banco" class="nav-link" onclick="scrollToSection('configuracao-banco')">
+                        <i class="fas fa-database me-2"></i>Banco de Dados
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#variaveis-ambiente" class="nav-link" onclick="scrollToSection('variaveis-ambiente')">
+                        <i class="fas fa-cog me-2"></i>Variáveis de Ambiente
+                    </a>
+                </div>
             </div>
-            <div class="nav-item">
-                <a href="#users" class="nav-link" onclick="scrollToSection('users')">
-                    <i class="fas fa-users me-2"></i>Usuários
-                </a>
+
+            <!-- API ENDPOINTS -->
+            <div class="nav-section">
+                <div class="nav-section-title">API Endpoints</div>
+                <div class="nav-item">
+                    <a href="#autenticacao" class="nav-link" onclick="scrollToSection('autenticacao')">
+                        <i class="fas fa-key me-2"></i>Autenticação
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#tickets" class="nav-link" onclick="scrollToSection('tickets')">
+                        <i class="fas fa-ticket-alt me-2"></i>Tickets
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#usuarios" class="nav-link" onclick="scrollToSection('usuarios')">
+                        <i class="fas fa-users me-2"></i>Usuários
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#setores" class="nav-link" onclick="scrollToSection('setores')">
+                        <i class="fas fa-building me-2"></i>Setores
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#assuntos" class="nav-link" onclick="scrollToSection('assuntos')">
+                        <i class="fas fa-tags me-2"></i>Assuntos
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#feriados" class="nav-link" onclick="scrollToSection('feriados')">
+                        <i class="fas fa-calendar me-2"></i>Feriados
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#sla" class="nav-link" onclick="scrollToSection('sla')">
+                        <i class="fas fa-clock me-2"></i>SLA
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#analytics" class="nav-link" onclick="scrollToSection('analytics')">
+                        <i class="fas fa-chart-bar me-2"></i>Analytics
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#relatorios" class="nav-link" onclick="scrollToSection('relatorios')">
+                        <i class="fas fa-file-alt me-2"></i>Relatórios
+                    </a>
+                </div>
             </div>
-            <div class="nav-item">
-                <a href="#tickets" class="nav-link" onclick="scrollToSection('tickets')">
-                    <i class="fas fa-ticket-alt me-2"></i>Tickets
-                </a>
+
+            <!-- DEPLOY E MANUTENÇÃO -->
+            <div class="nav-section">
+                <div class="nav-section-title">Deploy & Manutenção</div>
+                <div class="nav-item">
+                    <a href="#deploy-desenvolvimento" class="nav-link" onclick="scrollToSection('deploy-desenvolvimento')">
+                        <i class="fas fa-laptop-code me-2"></i>Deploy Desenvolvimento
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#deploy-producao" class="nav-link" onclick="scrollToSection('deploy-producao')">
+                        <i class="fas fa-server me-2"></i>Deploy Produção
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#atualizacoes" class="nav-link" onclick="scrollToSection('atualizacoes')">
+                        <i class="fas fa-sync me-2"></i>Atualizações
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#backup" class="nav-link" onclick="scrollToSection('backup')">
+                        <i class="fas fa-save me-2"></i>Backup
+                    </a>
+                </div>
             </div>
-            <div class="nav-item">
-                <a href="#setores" class="nav-link" onclick="scrollToSection('setores')">
-                    <i class="fas fa-building me-2"></i>Setores
-                </a>
+
+            <!-- TROUBLESHOOTING -->
+            <div class="nav-section">
+                <div class="nav-section-title">Troubleshooting</div>
+                <div class="nav-item">
+                    <a href="#erros-comuns" class="nav-link" onclick="scrollToSection('erros-comuns')">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Erros Comuns
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#logs" class="nav-link" onclick="scrollToSection('logs')">
+                        <i class="fas fa-file-text me-2"></i>Logs
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#monitoramento" class="nav-link" onclick="scrollToSection('monitoramento')">
+                        <i class="fas fa-eye me-2"></i>Monitoramento
+                    </a>
+                </div>
             </div>
-            <div class="nav-item">
-                <a href="#analytics" class="nav-link" onclick="scrollToSection('analytics')">
-                    <i class="fas fa-chart-line me-2"></i>Analytics
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="#reports" class="nav-link" onclick="scrollToSection('reports')">
-                    <i class="fas fa-file-alt me-2"></i>Relatórios
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="#sla" class="nav-link" onclick="scrollToSection('sla')">
-                    <i class="fas fa-clock me-2"></i>SLA
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="#notifications" class="nav-link" onclick="scrollToSection('notifications')">
-                    <i class="fas fa-bell me-2"></i>Notificações
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="#status-codes" class="nav-link" onclick="scrollToSection('status-codes')">
-                    <i class="fas fa-code me-2"></i>Códigos de Status
-                </a>
-            </div>
-            <div class="nav-item">
-                <a href="#examples" class="nav-link" onclick="scrollToSection('examples')">
-                    <i class="fas fa-play me-2"></i>Exemplos
-                </a>
+
+            <!-- SEGURANÇA -->
+            <div class="nav-section">
+                <div class="nav-section-title">Segurança</div>
+                <div class="nav-item">
+                    <a href="#seguranca" class="nav-link" onclick="scrollToSection('seguranca')">
+                        <i class="fas fa-shield-alt me-2"></i>Medidas de Segurança
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#auditoria" class="nav-link" onclick="scrollToSection('auditoria')">
+                        <i class="fas fa-search me-2"></i>Auditoria
+                    </a>
+                </div>
             </div>
         </nav>
     </div>
@@ -368,30 +590,413 @@
 
         <!-- Hero Section -->
         <div class="hero-section">
-            <h1><i class="fas fa-book me-3"></i>Documentação da API</h1>
-            <p>Sistema de Tickets - Guia completo para integração</p>
+            <h1><i class="fas fa-book me-3"></i>Documentação Completa do Sistema</h1>
+            <p>Sistema de Tickets CEAPE - Guia completo para desenvolvimento, deploy e manutenção</p>
             <div class="mt-3">
                 <span class="badge bg-light text-dark me-2">v1.0.0</span>
                 <span class="badge bg-light text-dark me-2">JWT Auth</span>
-                <span class="badge bg-light text-dark">REST API</span>
+                <span class="badge bg-light text-dark me-2">REST API</span>
+                <span class="badge bg-light text-dark me-2">PostgreSQL</span>
+                <span class="badge bg-light text-dark">Node.js</span>
             </div>
         </div>
 
-        <!-- Overview Section -->
-        <div class="section-card" id="overview">
-            <h2><i class="fas fa-home me-2"></i>Visão Geral</h2>
+        <!-- Introdução Section -->
+        <div class="section-card" id="introducao">
+            <h2><i class="fas fa-home me-2"></i>Introdução</h2>
             <div class="info-box">
                 <strong>URL Base:</strong> <code>https://ceape.systemtickts25.qzz.io</code>
             </div>
-            <p>A API do Sistema de Tickets oferece endpoints completos para gerenciamento de tickets, usuários, setores e relatórios. Todas as requisições devem incluir autenticação JWT.</p>
+            <p>O Sistema de Tickets CEAPE é uma solução completa para gerenciamento de tickets de suporte, desenvolvida para atender às necessidades específicas da organização. Este sistema oferece funcionalidades avançadas de rastreamento, SLA, analytics e relatórios.</p>
             
             <h4>Características Principais:</h4>
             <ul>
-                <li><strong>Autenticação JWT:</strong> Tokens válidos por 6 meses</li>
-                <li><strong>Rate Limiting:</strong> Desabilitado para máxima flexibilidade</li>
+                <li><strong>Autenticação JWT:</strong> Tokens válidos por 6 meses com refresh automático</li>
+                <li><strong>Gerenciamento de SLA:</strong> Controle automático de prazos com feriados</li>
+                <li><strong>Multi-setores:</strong> Suporte a múltiplos setores com permissões específicas</li>
+                <li><strong>Analytics Avançados:</strong> Dashboards interativos com métricas em tempo real</li>
+                <li><strong>Notificações:</strong> Sistema de notificações por email</li>
+                <li><strong>Auditoria Completa:</strong> Log de todas as alterações nos tickets</li>
                 <li><strong>HTTPS:</strong> Todas as comunicações são criptografadas</li>
-                <li><strong>JSON:</strong> Todas as requisições e respostas em JSON</li>
+                <li><strong>JSON API:</strong> API RESTful completa para integração</li>
             </ul>
+
+            <div class="alert alert-info">
+                <h5><i class="fas fa-info-circle"></i> Importante</h5>
+                <p>Esta documentação é essencial para desenvolvedores, administradores de sistema e equipes de manutenção. Mantenha-a sempre atualizada conforme o sistema evolui.</p>
+            </div>
+        </div>
+
+        <!-- Arquitetura Section -->
+        <div class="section-card" id="arquitetura">
+            <h2><i class="fas fa-sitemap me-2"></i>Arquitetura do Sistema</h2>
+            <p>O Sistema de Tickets CEAPE segue uma arquitetura modular baseada em camadas, garantindo escalabilidade, manutenibilidade e segurança.</p>
+            
+            <h4>Camadas da Arquitetura:</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="architecture-layer">
+                        <h5><i class="fas fa-globe"></i> Camada de Apresentação</h5>
+                        <ul>
+                            <li>Interface web responsiva (HTML5, CSS3, JavaScript)</li>
+                            <li>Dashboards interativos com Chart.js</li>
+                            <li>Páginas administrativas</li>
+                            <li>Formulários de criação e edição</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="architecture-layer">
+                        <h5><i class="fas fa-server"></i> Camada de API</h5>
+                        <ul>
+                            <li>Express.js para roteamento</li>
+                            <li>Middleware de autenticação JWT</li>
+                            <li>Validação de dados</li>
+                            <li>Tratamento de erros centralizado</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <div class="architecture-layer">
+                        <h5><i class="fas fa-cogs"></i> Camada de Serviços</h5>
+                        <ul>
+                            <li>Lógica de negócio</li>
+                            <li>Serviços de SLA</li>
+                            <li>Serviços de notificação</li>
+                            <li>Serviços de email</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="architecture-layer">
+                        <h5><i class="fas fa-database"></i> Camada de Dados</h5>
+                        <ul>
+                            <li>PostgreSQL como banco principal</li>
+                            <li>Sequelize ORM</li>
+                            <li>Migrações automáticas</li>
+                            <li>Backup automático</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle"></i> Pontos de Atenção</h5>
+                <ul>
+                    <li><strong>Escalabilidade:</strong> O sistema foi projetado para suportar múltiplos usuários simultâneos</li>
+                    <li><strong>Segurança:</strong> Todas as operações são validadas e auditadas</li>
+                    <li><strong>Performance:</strong> Consultas otimizadas e cache quando necessário</li>
+                    <li><strong>Manutenibilidade:</strong> Código modular e bem documentado</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tecnologias Section -->
+        <div class="section-card" id="tecnologias">
+            <h2><i class="fas fa-code me-2"></i>Tecnologias Utilizadas</h2>
+            <p>O sistema utiliza um stack moderno de tecnologias para garantir performance, segurança e facilidade de manutenção.</p>
+            
+            <h4>Backend:</h4>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <strong>Node.js</strong> - Runtime JavaScript
+                </div>
+                <div class="tech-item">
+                    <strong>Express.js</strong> - Framework web
+                </div>
+                <div class="tech-item">
+                    <strong>Sequelize</strong> - ORM para PostgreSQL
+                </div>
+                <div class="tech-item">
+                    <strong>JWT</strong> - Autenticação
+                </div>
+                <div class="tech-item">
+                    <strong>bcrypt</strong> - Criptografia de senhas
+                </div>
+                <div class="tech-item">
+                    <strong>Helmet</strong> - Segurança HTTP
+                </div>
+            </div>
+
+            <h4>Frontend:</h4>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <strong>HTML5</strong> - Estrutura
+                </div>
+                <div class="tech-item">
+                    <strong>CSS3</strong> - Estilização
+                </div>
+                <div class="tech-item">
+                    <strong>JavaScript (ES6+)</strong> - Interatividade
+                </div>
+                <div class="tech-item">
+                    <strong>Bootstrap 5</strong> - Framework CSS
+                </div>
+                <div class="tech-item">
+                    <strong>Chart.js</strong> - Gráficos
+                </div>
+                <div class="tech-item">
+                    <strong>Font Awesome</strong> - Ícones
+                </div>
+            </div>
+
+            <h4>Banco de Dados:</h4>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <strong>PostgreSQL</strong> - Banco de dados principal
+                </div>
+                <div class="tech-item">
+                    <strong>pg</strong> - Driver PostgreSQL para Node.js
+                </div>
+            </div>
+
+            <h4>Deploy e Infraestrutura:</h4>
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <strong>PM2</strong> - Gerenciador de processos
+                </div>
+                <div class="tech-item">
+                    <strong>Oracle Cloud</strong> - Servidor de produção
+                </div>
+                <div class="tech-item">
+                    <strong>Git</strong> - Controle de versão
+                </div>
+                <div class="tech-item">
+                    <strong>SSH</strong> - Acesso remoto seguro
+                </div>
+            </div>
+        </div>
+
+        <!-- Instalação Section -->
+        <div class="section-card" id="instalacao">
+            <h2><i class="fas fa-download me-2"></i>Instalação e Configuração</h2>
+            <p>Guia completo para instalação do sistema em ambiente de desenvolvimento.</p>
+            
+            <h4>Pré-requisitos:</h4>
+            <ul>
+                <li><strong>Node.js</strong> versão 16 ou superior</li>
+                <li><strong>PostgreSQL</strong> versão 12 ou superior</li>
+                <li><strong>Git</strong> para clonar o repositório</li>
+                <li><strong>npm</strong> ou <strong>yarn</strong> para gerenciar dependências</li>
+            </ul>
+
+            <h4>Passos de Instalação:</h4>
+            <div class="installation-step">
+                <h5>1. Clonar o Repositório</h5>
+                <div class="code-block">
+git clone https://github.com/thallyson03/ceapdesk.git
+cd ceapdesk
+                </div>
+            </div>
+
+            <div class="installation-step">
+                <h5>2. Instalar Dependências</h5>
+                <div class="code-block">
+npm install
+                </div>
+            </div>
+
+            <div class="installation-step">
+                <h5>3. Configurar Banco de Dados</h5>
+                <div class="code-block">
+# Criar banco de dados PostgreSQL
+createdb sistema_tickets_dev
+
+# Criar usuário (opcional)
+createuser sistema_user
+psql -d sistema_tickets_dev -c "ALTER USER sistema_user WITH PASSWORD 'ceape2025';"
+                </div>
+            </div>
+
+            <div class="installation-step">
+                <h5>4. Configurar Variáveis de Ambiente</h5>
+                <div class="code-block">
+# Copiar arquivo de exemplo
+cp env.example .env
+
+# Editar .env com suas configurações
+nano .env
+                </div>
+            </div>
+
+            <div class="installation-step">
+                <h5>5. Executar Migrações</h5>
+                <div class="code-block">
+# Executar scripts de migração
+node scripts/add-client-fields.js
+node scripts/add-default-holidays.js
+node scripts/add-sample-assuntos.js
+node scripts/add-sample-data-dashboard.js
+                </div>
+            </div>
+
+            <div class="installation-step">
+                <h5>6. Iniciar o Servidor</h5>
+                <div class="code-block">
+# Desenvolvimento
+npm start
+
+# Ou com PM2
+pm2 start server.js --name ceapdesk
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <h5><i class="fas fa-check-circle"></i> Verificação</h5>
+                <p>Acesse <code>http://localhost:3000</code> para verificar se a instalação foi bem-sucedida.</p>
+            </div>
+        </div>
+
+        <!-- Configuração Banco Section -->
+        <div class="section-card" id="configuracao-banco">
+            <h2><i class="fas fa-database me-2"></i>Configuração do Banco de Dados</h2>
+            <p>Configuração detalhada do banco de dados PostgreSQL para diferentes ambientes.</p>
+            
+            <h4>Estrutura do Banco:</h4>
+            <div class="database-schema">
+                <h5>Tabelas Principais:</h5>
+                <ul>
+                    <li><strong>Users</strong> - Usuários do sistema</li>
+                    <li><strong>Tickets</strong> - Tickets de suporte</li>
+                    <li><strong>Setores</strong> - Setores da organização</li>
+                    <li><strong>UserSetor</strong> - Relacionamento usuário-setor</li>
+                    <li><strong>Assuntos</strong> - Categorias de tickets</li>
+                    <li><strong>Feriados</strong> - Feriados para cálculo de SLA</li>
+                    <li><strong>SLA</strong> - Configurações de SLA por setor</li>
+                    <li><strong>HistoricoTicket</strong> - Histórico de alterações</li>
+                    <li><strong>Anotacoes</strong> - Anotações nos tickets</li>
+                </ul>
+            </div>
+
+            <h4>Configuração de Desenvolvimento:</h4>
+            <div class="code-block">
+# config/database.js - Desenvolvimento
+const development = {
+    username: 'sistema_user',
+    password: 'ceape2025',
+    database: 'sistema_tickets_dev',
+    host: 'localhost',
+    port: 5432,
+    dialect: 'postgres',
+    logging: false
+};
+            </div>
+
+            <h4>Configuração de Produção:</h4>
+            <div class="code-block">
+# config/database.js - Produção
+const production = {
+    username: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: 'postgres',
+    logging: false,
+    pool: {
+        max: 10,
+        min: 2,
+        acquire: 30000,
+        idle: 10000
+    }
+};
+            </div>
+
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle"></i> Importante</h5>
+                <ul>
+                    <li>Sempre use senhas fortes em produção</li>
+                    <li>Configure backup automático do banco</li>
+                    <li>Monitore o uso de conexões</li>
+                    <li>Mantenha o PostgreSQL atualizado</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Variáveis de Ambiente Section -->
+        <div class="section-card" id="variaveis-ambiente">
+            <h2><i class="fas fa-cog me-2"></i>Variáveis de Ambiente</h2>
+            <p>Configuração completa das variáveis de ambiente necessárias para o funcionamento do sistema.</p>
+            
+            <h4>Arquivo .env:</h4>
+            <div class="code-block">
+# Configurações do Servidor
+PORT=3000
+NODE_ENV=development
+FORCE_HTTPS=false
+
+# 🔐 CONFIGURAÇÕES DE SEGURANÇA (OBRIGATÓRIAS)
+SECRET_KEY=c5e168ee4a2e3e93ac85f89cd2e4d38d4ec6c28a556d7f20d4f2ce15782578517eb5d0df5b7b43b0775075a767cbad2ec
+
+# 🗄️ CONFIGURAÇÕES DO BANCO POSTGRESQL
+DB_USER=sistema_user
+DB_PASSWORD=ceape2025
+DB_NAME=sistema_tickets_dev
+DB_HOST=localhost
+DB_PORT=5432
+
+# 🌐 CONFIGURAÇÕES DE CORS
+ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+
+# 🚦 CONFIGURAÇÕES DE RATE LIMITING
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# 🔑 CONFIGURAÇÕES DE JWT
+JWT_EXPIRES_IN=6mo
+JWT_REFRESH_EXPIRES_IN=1y
+
+# 🔒 CONFIGURAÇÕES DE SENHA
+MIN_PASSWORD_LENGTH=8
+REQUIRE_PASSWORD_COMPLEXITY=true
+
+# 📝 CONFIGURAÇÕES DE LOGGING
+LOG_LEVEL=info
+LOG_FILE=logs/app.log
+
+# 👤 CONFIGURAÇÕES DE ADMIN
+ADMIN_PASSWORD=admin123
+
+# 📧 CONFIGURAÇÕES DE EMAIL (OPCIONAL)
+RESEND_API_KEY=re_sua_chave_api_aqui
+FROM_EMAIL=noreply@seudominio.com
+FROM_NAME=Sistema de Tickets
+            </div>
+
+            <h4>Variáveis por Ambiente:</h4>
+            <div class="env-comparison">
+                <div class="env-dev">
+                    <h5>Desenvolvimento:</h5>
+                    <ul>
+                        <li><code>NODE_ENV=development</code></li>
+                        <li><code>FORCE_HTTPS=false</code></li>
+                        <li><code>LOG_LEVEL=debug</code></li>
+                        <li><code>ALLOWED_ORIGINS=http://localhost:3000</code></li>
+                    </ul>
+                </div>
+                <div class="env-prod">
+                    <h5>Produção:</h5>
+                    <ul>
+                        <li><code>NODE_ENV=production</code></li>
+                        <li><code>FORCE_HTTPS=true</code></li>
+                        <li><code>LOG_LEVEL=error</code></li>
+                        <li><code>ALLOWED_ORIGINS=https://ceape.systemtickts25.qzz.io</code></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-shield-alt"></i> Segurança</h5>
+                <ul>
+                    <li><strong>NUNCA</strong> commite o arquivo .env no Git</li>
+                    <li>Use <code>.env.example</code> como template</li>
+                    <li>Gere uma <code>SECRET_KEY</code> forte para produção</li>
+                    <li>Mantenha as variáveis de produção seguras</li>
+                </ul>
+            </div>
         </div>
 
         <!-- Authentication Section -->
@@ -829,14 +1434,704 @@ print('Ticket criado:', response.json())
             </div>
         </div>
 
+        <!-- Deploy Desenvolvimento Section -->
+        <div class="section-card" id="deploy-desenvolvimento">
+            <h2><i class="fas fa-laptop-code me-2"></i>Deploy em Desenvolvimento</h2>
+            <p>Guia completo para configurar e executar o sistema em ambiente de desenvolvimento local.</p>
+            
+            <h4>Configuração Inicial:</h4>
+            <div class="deploy-step">
+                <h5>1. Preparar Ambiente</h5>
+                <div class="code-block">
+# Verificar versões
+node --version  # Deve ser >= 16
+npm --version   # Deve ser >= 8
+psql --version  # Deve ser >= 12
+
+# Instalar dependências
+npm install
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>2. Configurar Banco de Dados</h5>
+                <div class="code-block">
+# Criar banco de desenvolvimento
+createdb sistema_tickets_dev
+
+# Configurar usuário (se necessário)
+createuser sistema_user
+psql -d sistema_tickets_dev -c "ALTER USER sistema_user WITH PASSWORD 'ceape2025';"
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>3. Configurar Variáveis de Ambiente</h5>
+                <div class="code-block">
+# Copiar arquivo de exemplo
+cp env.example .env
+
+# Editar .env para desenvolvimento
+NODE_ENV=development
+DB_NAME=sistema_tickets_dev
+DB_USER=sistema_user
+DB_PASSWORD=ceape2025
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>4. Executar Migrações</h5>
+                <div class="code-block">
+# Executar scripts de migração em ordem
+node scripts/add-client-fields.js
+node scripts/add-default-holidays.js
+node scripts/add-sample-assuntos.js
+node scripts/add-sample-data-dashboard.js
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>5. Iniciar Servidor</h5>
+                <div class="code-block">
+# Modo desenvolvimento
+npm start
+
+# Ou com nodemon (recomendado)
+npm install -g nodemon
+nodemon server.js
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <h5><i class="fas fa-info-circle"></i> Dicas de Desenvolvimento</h5>
+                <ul>
+                    <li>Use <code>nodemon</code> para reinicialização automática</li>
+                    <li>Configure seu editor para formatar código automaticamente</li>
+                    <li>Use o console do navegador para debug</li>
+                    <li>Monitore os logs do servidor para erros</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Deploy Produção Section -->
+        <div class="section-card" id="deploy-producao">
+            <h2><i class="fas fa-server me-2"></i>Deploy em Produção</h2>
+            <p>Guia detalhado para deploy seguro em ambiente de produção no Oracle Cloud Free Tier.</p>
+            
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle"></i> ⚠️ ATENÇÃO CRÍTICA</h5>
+                <p><strong>NUNCA</strong> faça deploy direto em produção sem testar em desenvolvimento primeiro!</p>
+            </div>
+
+            <h4>Pré-requisitos de Produção:</h4>
+            <ul>
+                <li><strong>Servidor Oracle Cloud Free Tier</strong> configurado</li>
+                <li><strong>SSH</strong> configurado com chave privada</li>
+                <li><strong>PostgreSQL</strong> instalado e configurado</li>
+                <li><strong>PM2</strong> instalado globalmente</li>
+                <li><strong>Git</strong> configurado no servidor</li>
+            </ul>
+
+            <h4>Passos de Deploy:</h4>
+            <div class="deploy-step">
+                <h5>1. Conectar ao Servidor</h5>
+                <div class="code-block">
+# Conectar via SSH
+ssh -i ssh-key-2025-08-12.ceape.key ubuntu@129.146.176.225
+
+# Navegar para o diretório do projeto
+cd ceapdesk
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>2. Atualizar Código</h5>
+                <div class="code-block">
+# Fazer pull das últimas alterações
+git pull origin master
+
+# Verificar se há conflitos
+git status
+
+# Instalar dependências atualizadas
+npm install
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>3. Configurar Variáveis de Produção</h5>
+                <div class="code-block">
+# Verificar arquivo .env
+cat .env
+
+# Garantir que as configurações estão corretas
+NODE_ENV=production
+FORCE_HTTPS=true
+LOG_LEVEL=error
+DB_PASSWORD=ceape2025
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>4. Executar Migrações</h5>
+                <div class="code-block">
+# Executar scripts de migração (se necessário)
+node scripts/add-client-fields.js
+node scripts/add-default-holidays.js
+node scripts/add-sample-assuntos.js
+node scripts/add-sample-data-dashboard.js
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>5. Reiniciar Servidor</h5>
+                <div class="code-block">
+# Verificar status do PM2
+pm2 status
+
+# Reiniciar aplicação
+pm2 restart ceapdesk
+
+# Verificar logs
+pm2 logs ceapdesk --lines 10
+                </div>
+            </div>
+
+            <div class="deploy-step">
+                <h5>6. Verificar Funcionamento</h5>
+                <div class="code-block">
+# Testar se o servidor está respondendo
+curl -I http://localhost:3000
+
+# Verificar se não há erros
+pm2 logs ceapdesk --err --lines 5
+                </div>
+            </div>
+
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-shield-alt"></i> Checklist de Segurança</h5>
+                <ul>
+                    <li>✅ Senhas fortes configuradas</li>
+                    <li>✅ HTTPS habilitado</li>
+                    <li>✅ Logs de erro configurados</li>
+                    <li>✅ Backup do banco configurado</li>
+                    <li>✅ Firewall configurado</li>
+                    <li>✅ Monitoramento ativo</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Atualizações Section -->
+        <div class="section-card" id="atualizacoes">
+            <h2><i class="fas fa-sync me-2"></i>Processo de Atualizações</h2>
+            <p>Procedimento seguro para atualizar o sistema em produção sem causar downtime.</p>
+            
+            <div class="alert alert-danger">
+                <h5><i class="fas fa-exclamation-triangle"></i> ⚠️ PROCEDIMENTO CRÍTICO</h5>
+                <p><strong>SEMPRE</strong> siga este processo exato para evitar problemas em produção!</p>
+            </div>
+
+            <h4>Fluxo de Atualização:</h4>
+            <div class="update-flow">
+                <div class="update-step">
+                    <h5>1. Desenvolvimento Local</h5>
+                    <div class="code-block">
+# Testar todas as mudanças localmente
+npm start
+# Verificar se tudo funciona
+# Fazer testes manuais
+# Corrigir problemas encontrados
+                    </div>
+                </div>
+
+                <div class="update-step">
+                    <h5>2. Commit e Push</h5>
+                    <div class="code-block">
+# Adicionar mudanças
+git add .
+
+# Commit com mensagem descritiva
+git commit -m "Adiciona nova funcionalidade X"
+
+# Push para o repositório
+git push origin master
+                    </div>
+                </div>
+
+                <div class="update-step">
+                    <h5>3. Backup de Produção</h5>
+                    <div class="code-block">
+# Conectar ao servidor
+ssh -i ssh-key-2025-08-12.ceape.key ubuntu@129.146.176.225
+
+# Fazer backup do banco
+pg_dump -U sistema_user -d sistema_tickets > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Verificar se o backup foi criado
+ls -la backup_*.sql
+                    </div>
+                </div>
+
+                <div class="update-step">
+                    <h5>4. Deploy em Produção</h5>
+                    <div class="code-block">
+# Navegar para o projeto
+cd ceapdesk
+
+# Fazer pull das mudanças
+git pull origin master
+
+# Instalar dependências
+npm install
+
+# Executar migrações (se necessário)
+node scripts/add-client-fields.js
+node scripts/add-default-holidays.js
+node scripts/add-sample-assuntos.js
+node scripts/add-sample-data-dashboard.js
+
+# Reiniciar servidor
+pm2 restart ceapdesk
+                    </div>
+                </div>
+
+                <div class="update-step">
+                    <h5>5. Verificação Pós-Deploy</h5>
+                    <div class="code-block">
+# Verificar status do servidor
+pm2 status
+
+# Verificar logs
+pm2 logs ceapdesk --lines 10
+
+# Testar funcionalidades críticas
+curl -I http://localhost:3000
+curl -I http://localhost:3000/api/v1/tickets
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <h5><i class="fas fa-exclamation-triangle"></i> Pontos de Atenção</h5>
+                <ul>
+                    <li><strong>NUNCA</strong> faça deploy em horário de pico</li>
+                    <li><strong>SEMPRE</strong> faça backup antes de qualquer mudança</li>
+                    <li><strong>TESTE</strong> todas as funcionalidades após o deploy</li>
+                    <li><strong>MONITORE</strong> os logs por pelo menos 1 hora após o deploy</li>
+                    <li><strong>TENHA</strong> um plano de rollback preparado</li>
+                </ul>
+            </div>
+
+            <h4>Rollback (Em caso de problemas):</h4>
+            <div class="code-block">
+# Se algo der errado, fazer rollback
+cd ceapdesk
+
+# Voltar para commit anterior
+git log --oneline -5
+git reset --hard HEAD~1
+
+# Restaurar backup se necessário
+psql -U sistema_user -d sistema_tickets < backup_YYYYMMDD_HHMMSS.sql
+
+# Reiniciar servidor
+pm2 restart ceapdesk
+            </div>
+        </div>
+
+        <!-- Backup Section -->
+        <div class="section-card" id="backup">
+            <h2><i class="fas fa-save me-2"></i>Estratégia de Backup</h2>
+            <p>Procedimentos para backup e recuperação de dados do sistema.</p>
+            
+            <h4>Backup do Banco de Dados:</h4>
+            <div class="backup-strategy">
+                <h5>Backup Manual:</h5>
+                <div class="code-block">
+# Backup completo do banco
+pg_dump -U sistema_user -d sistema_tickets > backup_completo_$(date +%Y%m%d_%H%M%S).sql
+
+# Backup apenas dados (sem estrutura)
+pg_dump -U sistema_user -d sistema_tickets --data-only > backup_dados_$(date +%Y%m%d_%H%M%S).sql
+
+# Backup apenas estrutura (sem dados)
+pg_dump -U sistema_user -d sistema_tickets --schema-only > backup_estrutura_$(date +%Y%m%d_%H%M%S).sql
+                </div>
+            </div>
+
+            <div class="backup-strategy">
+                <h5>Backup Automático (Cron):</h5>
+                <div class="code-block">
+# Editar crontab
+crontab -e
+
+# Adicionar linha para backup diário às 2h da manhã
+0 2 * * * pg_dump -U sistema_user -d sistema_tickets > /home/ubuntu/backups/backup_$(date +\%Y\%m\%d).sql
+
+# Criar diretório de backups
+mkdir -p /home/ubuntu/backups
+                </div>
+            </div>
+
+            <h4>Restauração:</h4>
+            <div class="code-block">
+# Restaurar backup completo
+psql -U sistema_user -d sistema_tickets < backup_completo_20250115_143022.sql
+
+# Restaurar apenas dados
+psql -U sistema_user -d sistema_tickets < backup_dados_20250115_143022.sql
+
+# Restaurar apenas estrutura
+psql -U sistema_user -d sistema_tickets < backup_estrutura_20250115_143022.sql
+            </div>
+
+            <div class="alert alert-info">
+                <h5><i class="fas fa-info-circle"></i> Boas Práticas</h5>
+                <ul>
+                    <li>Faça backup diário automático</li>
+                    <li>Mantenha pelo menos 7 dias de backup</li>
+                    <li>Teste a restauração periodicamente</li>
+                    <li>Armazene backups em local seguro</li>
+                    <li>Documente procedimentos de restauração</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Erros Comuns Section -->
+        <div class="section-card" id="erros-comuns">
+            <h2><i class="fas fa-exclamation-triangle me-2"></i>Erros Comuns e Soluções</h2>
+            <p>Guia de troubleshooting para problemas frequentes no sistema.</p>
+            
+            <h4>Erro 500 - Internal Server Error:</h4>
+            <div class="error-solution">
+                <h5>Sintomas:</h5>
+                <ul>
+                    <li>Página não carrega</li>
+                    <li>API retorna erro 500</li>
+                    <li>Logs mostram "column does not exist"</li>
+                </ul>
+                
+                <h5>Causa:</h5>
+                <p>Campos ausentes no banco de dados após atualizações.</p>
+                
+                <h5>Solução:</h5>
+                <div class="code-block">
+# Conectar ao servidor
+ssh -i ssh-key-2025-08-12.ceape.key ubuntu@129.146.176.225
+
+# Navegar para o projeto
+cd ceapdesk
+
+# Executar migrações
+node scripts/add-client-fields.js
+node scripts/add-default-holidays.js
+node scripts/add-sample-assuntos.js
+
+# Reiniciar servidor
+pm2 restart ceapdesk
+                </div>
+            </div>
+
+            <h4>Erro de Autenticação no Banco:</h4>
+            <div class="error-solution">
+                <h5>Sintomas:</h5>
+                <ul>
+                    <li>Erro "password authentication failed"</li>
+                    <li>Scripts de migração falham</li>
+                    <li>Servidor não inicia</li>
+                </ul>
+                
+                <h5>Solução:</h5>
+                <div class="code-block">
+# Verificar arquivo .env
+cat .env | grep DB_PASSWORD
+
+# Corrigir senha se necessário
+sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=ceape2025/' .env
+
+# Testar conexão
+PGPASSWORD=ceape2025 psql -U sistema_user -d sistema_tickets -c "SELECT 1;"
+                </div>
+            </div>
+
+            <h4>Arquivo não encontrado (ENOENT):</h4>
+            <div class="error-solution">
+                <h5>Sintomas:</h5>
+                <ul>
+                    <li>Erro "no such file or directory"</li>
+                    <li>Páginas HTML não carregam</li>
+                    <li>Arquivos estáticos não encontrados</li>
+                </ul>
+                
+                <h5>Solução:</h5>
+                <div class="code-block">
+# Verificar se arquivos foram enviados para Git
+git ls-files public/
+
+# Se arquivos estão faltando, adicionar ao Git
+git add public/
+git commit -m "Adiciona arquivos HTML faltantes"
+git push origin master
+
+# Fazer pull no servidor
+cd ceapdesk
+git pull origin master
+pm2 restart ceapdesk
+                </div>
+            </div>
+
+            <h4>PM2 não inicia:</h4>
+            <div class="error-solution">
+                <h5>Solução:</h5>
+                <div class="code-block">
+# Verificar se PM2 está instalado
+pm2 --version
+
+# Se não estiver, instalar
+npm install -g pm2
+
+# Verificar processos
+pm2 status
+
+# Se processo existe, parar e reiniciar
+pm2 stop ceapdesk
+pm2 delete ceapdesk
+pm2 start server.js --name ceapdesk
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Section -->
+        <div class="section-card" id="logs">
+            <h2><i class="fas fa-file-text me-2"></i>Monitoramento de Logs</h2>
+            <p>Como monitorar e analisar logs do sistema para identificar problemas.</p>
+            
+            <h4>Logs do PM2:</h4>
+            <div class="log-commands">
+                <h5>Comandos Úteis:</h5>
+                <div class="code-block">
+# Ver logs em tempo real
+pm2 logs ceapdesk
+
+# Ver últimas 20 linhas
+pm2 logs ceapdesk --lines 20
+
+# Ver apenas erros
+pm2 logs ceapdesk --err
+
+# Ver apenas logs normais
+pm2 logs ceapdesk --out
+
+# Limpar logs
+pm2 flush
+                </div>
+            </div>
+
+            <h4>Logs do Sistema:</h4>
+            <div class="code-block">
+# Ver logs do sistema
+sudo journalctl -u pm2-ubuntu
+
+# Ver logs de rede
+sudo netstat -tulpn | grep :3000
+
+# Ver uso de recursos
+htop
+free -h
+df -h
+            </div>
+
+            <h4>Análise de Logs:</h4>
+            <div class="log-analysis">
+                <h5>Padrões a Observar:</h5>
+                <ul>
+                    <li><strong>Erros 500:</strong> Problemas no servidor</li>
+                    <li><strong>Erros 404:</strong> Rotas não encontradas</li>
+                    <li><strong>Erros 401:</strong> Problemas de autenticação</li>
+                    <li><strong>Timeout:</strong> Consultas lentas no banco</li>
+                    <li><strong>Memory leaks:</strong> Uso crescente de memória</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Monitoramento Section -->
+        <div class="section-card" id="monitoramento">
+            <h2><i class="fas fa-eye me-2"></i>Monitoramento do Sistema</h2>
+            <p>Ferramentas e procedimentos para monitorar a saúde do sistema.</p>
+            
+            <h4>Comandos de Monitoramento:</h4>
+            <div class="monitoring-commands">
+                <h5>Status do Servidor:</h5>
+                <div class="code-block">
+# Status do PM2
+pm2 status
+
+# Status do sistema
+uptime
+top
+htop
+
+# Uso de disco
+df -h
+
+# Uso de memória
+free -h
+
+# Processos ativos
+ps aux | grep node
+                </div>
+            </div>
+
+            <h4>Testes de Saúde:</h4>
+            <div class="health-checks">
+                <h5>Verificações Automáticas:</h5>
+                <div class="code-block">
+# Testar se servidor responde
+curl -I http://localhost:3000
+
+# Testar API
+curl -X GET "http://localhost:3000/api/v1/tickets" \
+  -H "Authorization: Bearer test" \
+  -w "Status: %{http_code}\nTempo: %{time_total}s\n"
+
+# Testar banco de dados
+PGPASSWORD=ceape2025 psql -U sistema_user -d sistema_tickets -c "SELECT COUNT(*) FROM \"Tickets\";"
+                </div>
+            </div>
+
+            <h4>Alertas:</h4>
+            <div class="alerts">
+                <h5>Condições que Requerem Atenção:</h5>
+                <ul>
+                    <li><strong>CPU > 80%:</strong> Servidor sobrecarregado</li>
+                    <li><strong>Memória > 90%:</strong> Possível memory leak</li>
+                    <li><strong>Disco > 85%:</strong> Necessário limpeza</li>
+                    <li><strong>Erros 500:</strong> Problemas na aplicação</li>
+                    <li><strong>Timeout:</strong> Consultas lentas</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Segurança Section -->
+        <div class="section-card" id="seguranca">
+            <h2><i class="fas fa-shield-alt me-2"></i>Medidas de Segurança</h2>
+            <p>Configurações e práticas de segurança implementadas no sistema.</p>
+            
+            <h4>Configurações de Segurança:</h4>
+            <div class="security-config">
+                <h5>JWT (JSON Web Tokens):</h5>
+                <ul>
+                    <li>Tokens válidos por 6 meses</li>
+                    <li>Refresh automático de tokens</li>
+                    <li>Validação de assinatura</li>
+                    <li>Blacklist de tokens revogados</li>
+                </ul>
+            </div>
+
+            <div class="security-config">
+                <h5>Senhas:</h5>
+                <ul>
+                    <li>Criptografia bcrypt</li>
+                    <li>Mínimo 8 caracteres</li>
+                    <li>Complexidade obrigatória</li>
+                    <li>Hash único por usuário</li>
+                </ul>
+            </div>
+
+            <div class="security-config">
+                <h5>HTTP Security Headers:</h5>
+                <ul>
+                    <li>Helmet.js configurado</li>
+                    <li>HTTPS forçado em produção</li>
+                    <li>CORS configurado</li>
+                    <li>Rate limiting</li>
+                </ul>
+            </div>
+
+            <h4>Boas Práticas:</h4>
+            <div class="security-practices">
+                <ul>
+                    <li><strong>NUNCA</strong> commite senhas no Git</li>
+                    <li><strong>SEMPRE</strong> use HTTPS em produção</li>
+                    <li><strong>MONITORE</strong> logs de acesso</li>
+                    <li><strong>ATUALIZE</strong> dependências regularmente</li>
+                    <li><strong>BACKUP</strong> dados regularmente</li>
+                    <li><strong>TESTE</strong> vulnerabilidades periodicamente</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Auditoria Section -->
+        <div class="section-card" id="auditoria">
+            <h2><i class="fas fa-search me-2"></i>Sistema de Auditoria</h2>
+            <p>Como o sistema registra e monitora todas as atividades para fins de auditoria.</p>
+            
+            <h4>Logs de Auditoria:</h4>
+            <div class="audit-logs">
+                <h5>O que é Registrado:</h5>
+                <ul>
+                    <li><strong>Login/Logout:</strong> Todos os acessos ao sistema</li>
+                    <li><strong>Criação de Tickets:</strong> Quem criou, quando e dados</li>
+                    <li><strong>Alterações:</strong> Todas as mudanças em tickets</li>
+                    <li><strong>Exclusões:</strong> Soft delete com registro</li>
+                    <li><strong>Configurações:</strong> Mudanças em SLA e setores</li>
+                </ul>
+            </div>
+
+            <h4>Tabelas de Auditoria:</h4>
+            <div class="audit-tables">
+                <h5>HistoricoTicket:</h5>
+                <div class="code-block">
+-- Estrutura da tabela de histórico
+CREATE TABLE "HistoricoTicket" (
+    id SERIAL PRIMARY KEY,
+    ticket_id INTEGER,
+    user_id INTEGER,
+    acao VARCHAR(50),
+    campo_alterado VARCHAR(100),
+    valor_anterior TEXT,
+    valor_novo TEXT,
+    data_alteracao TIMESTAMP DEFAULT NOW()
+);
+                </div>
+            </div>
+
+            <h4>Consultas de Auditoria:</h4>
+            <div class="audit-queries">
+                <h5>Exemplos Úteis:</h5>
+                <div class="code-block">
+-- Ver todas as alterações de um ticket
+SELECT * FROM "HistoricoTicket" 
+WHERE ticket_id = 123 
+ORDER BY data_alteracao DESC;
+
+-- Ver atividades de um usuário
+SELECT * FROM "HistoricoTicket" 
+WHERE user_id = 456 
+ORDER BY data_alteracao DESC;
+
+-- Ver alterações de status
+SELECT * FROM "HistoricoTicket" 
+WHERE campo_alterado = 'status' 
+ORDER BY data_alteracao DESC;
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <div class="section-card text-center">
-            <h4><i class="fas fa-info-circle me-2"></i>Suporte</h4>
-            <p>Para dúvidas ou problemas com a API, entre em contato com a equipe de desenvolvimento.</p>
+            <h4><i class="fas fa-info-circle me-2"></i>Documentação Completa</h4>
+            <p>Esta documentação abrange todos os aspectos do Sistema de Tickets CEAPE, desde desenvolvimento até manutenção em produção.</p>
             <div class="mt-3">
                 <strong>URL da API:</strong> <code>https://ceape.systemtickts25.qzz.io</code><br>
                 <strong>Versão:</strong> 1.0.0<br>
-                <strong>Última atualização:</strong> Agosto 2025
+                <strong>Última atualização:</strong> Agosto 2025<br>
+                <strong>Ambiente de Produção:</strong> Oracle Cloud Free Tier<br>
+                <strong>Banco de Dados:</strong> PostgreSQL
+            </div>
+            <div class="alert alert-info mt-3">
+                <h5><i class="fas fa-book"></i> Importante</h5>
+                <p>Esta documentação é essencial para desenvolvedores, administradores de sistema e equipes de manutenção. Mantenha-a sempre atualizada conforme o sistema evolui.</p>
             </div>
         </div>
     </div>
