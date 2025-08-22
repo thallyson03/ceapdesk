@@ -16,14 +16,14 @@ class EmailService {
     async sendTicketNotification(ticket, users, setor) {
         try {
             if (!users || users.length === 0) {
-                console.log(`Nenhum usuário encontrado para o setor: ${setor}`);
+                // Nenhum usuário encontrado para o setor
                 return;
             }
 
             const emails = users.map(user => user.email).filter(email => email);
             
             if (emails.length === 0) {
-                console.log(`Nenhum email válido encontrado para usuários do setor: ${setor}`);
+                // Nenhum email válido encontrado
                 return;
             }
 
@@ -36,8 +36,7 @@ class EmailService {
                 html: emailContent
             });
 
-            console.log(`✅ Notificação enviada para ${emails.length} usuários do setor ${setor}`);
-            console.log(`📧 Email ID: ${result.data?.id}`);
+            // Notificação enviada silenciosamente
             
             return result;
         } catch (error) {

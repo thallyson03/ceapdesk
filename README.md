@@ -6,11 +6,15 @@ Sistema completo de gerenciamento de tickets com PostgreSQL, desenvolvido em Nod
 
 - ✅ **Gestão de Usuários** (com email obrigatório)
 - ✅ **Gestão de Setores** 
-- ✅ **Sistema de Tickets**
-- ✅ **Controle de SLA**
+- ✅ **Sistema de Tickets** (com dados do cliente - CPF/CNPJ, nome e contato)
+- ✅ **Controle de SLA** (excluindo feriados e finais de semana)
 - ✅ **Histórico de alterações**
 - ✅ **Anotações em tickets**
 - ✅ **Relatórios e analytics**
+- ✅ **Dashboard Gráfico Avançado** (com Chart.js)
+- ✅ **Gestão de Assuntos** (dropdown para títulos de tickets)
+- ✅ **Gestão de Feriados** (para cálculo de SLA)
+- ✅ **Performance Analytics** (usuários e setores)
 
 ## 📋 Pré-requisitos
 
@@ -87,6 +91,47 @@ JWT_REFRESH_EXPIRES_IN=7d
 - `npm run setup-db` - Configura o banco de dados
 - `npm run sync-db` - Sincroniza as tabelas
 - `npm run fix-admin` - Corrige/cria usuário admin
+- `node scripts/add-client-fields.js` - Adiciona campos de cliente ao banco
+
+## 📊 Dashboard Gráfico
+
+O sistema agora inclui um dashboard gráfico avançado com visualizações interativas:
+
+### **Funcionalidades do Dashboard**
+- **Visão Geral**: Tendências temporais, distribuição por status, performance de SLA
+- **Análise de Tickets**: Distribuição por prioridade e setor
+- **Performance de Usuários**: Ranking e métricas detalhadas
+- **Performance por Setor**: Análise de eficiência por área
+
+### **Acesso**
+- URL: `http://localhost:3000/dashboard-grafico.html`
+- Acesso restrito a administradores
+- Documentação completa: `DASHBOARD_GRAFICO_README.md`
+
+### **Tecnologias**
+- **Chart.js**: Gráficos interativos e responsivos
+- **Bootstrap 5**: Interface moderna
+- **APIs RESTful**: Dados em tempo real
+
+## 🔄 Migração de Dados
+
+Para adicionar os novos campos de cliente (CPF/CNPJ e nome), execute:
+
+```bash
+# Script automático (requer conexão com banco)
+node scripts/add-client-fields.js
+
+# Ou execute manualmente no seu banco de dados:
+# PostgreSQL:
+ALTER TABLE "Tickets" ADD COLUMN "cpfCnpj" VARCHAR(18);
+ALTER TABLE "Tickets" ADD COLUMN "nomeCliente" VARCHAR(255);
+
+# Oracle:
+ALTER TABLE "Tickets" ADD "cpfCnpj" VARCHAR2(18);
+ALTER TABLE "Tickets" ADD "nomeCliente" VARCHAR2(255);
+```
+
+Veja o arquivo `MIGRATION_CLIENT_FIELDS.md` para instruções detalhadas.
 
 ## 👤 Usuário Padrão
 

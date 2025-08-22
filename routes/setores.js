@@ -113,20 +113,20 @@ router.delete('/:id', authMiddleware, async (req, res) => {
                     { setor: 'Geral' },
                     { where: { setor: setor.nome } }
                 );
-                console.log(`📦 ${ticketsCount} tickets migrados do setor "${setor.nome}" para "Geral"`);
+                // Tickets migrados silenciosamente
             }
             
             // Remover usuários do setor
             if (usersCount > 0) {
                 await UserSetor.destroy({ where: { setorId: id } });
-                console.log(`👥 ${usersCount} usuários removidos do setor "${setor.nome}"`);
+                // Usuários removidos do setor silenciosamente
             }
         }
         
         // Excluir o setor
         await setor.destroy();
         
-        console.log(`✅ Setor "${setor.nome}" excluído por admin ${req.user.username}${force === 'true' ? ' (forçado)' : ''}`);
+        // Setor excluído silenciosamente
         
         res.status(200).json({ 
             message: `Setor "${setor.nome}" excluído com sucesso.${force === 'true' ? ' Dependências foram migradas.' : ''}`,

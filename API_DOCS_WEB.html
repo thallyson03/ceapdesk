@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Documentação da API - Sistema de Tickets</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-color: #212529;
+            --light-color: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 300px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow-y: auto;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header h3 {
+            color: white;
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .sidebar-header p {
+            color: rgba(255,255,255,0.8);
+            margin: 0.5rem 0 0 0;
+            font-size: 0.9rem;
+        }
+
+        .nav-menu {
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0.2rem 0;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9);
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: #fff;
+        }
+
+        .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-left-color: #fff;
+        }
+
+        .main-content {
+            margin-left: 300px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .endpoint-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-right: 1rem;
+        }
+
+        .method-get { background: #28a745; color: white; }
+        .method-post { background: #007bff; color: white; }
+        .method-put { background: #ffc107; color: black; }
+        .method-delete { background: #dc3545; color: white; }
+
+        .endpoint-url {
+            font-family: 'Courier New', monospace;
+            background: #e9ecef;
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin: 0.25rem;
+        }
+
+        .status-200 { background: #d4edda; color: #155724; }
+        .status-201 { background: #d1ecf1; color: #0c5460; }
+        .status-400 { background: #f8d7da; color: #721c24; }
+        .status-401 { background: #fff3cd; color: #856404; }
+        .status-403 { background: #f8d7da; color: #721c24; }
+        .status-404 { background: #f8d7da; color: #721c24; }
+        .status-429 { background: #fff3cd; color: #856404; }
+        .status-500 { background: #f8d7da; color: #721c24; }
+
+        .search-box {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            padding: 0.75rem 1.5rem;
+            width: 100%;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+
+        .copy-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: #0b5ed7;
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-book me-2"></i>API Docs</h3>
+            <p>Sistema de Tickets</p>
+        </div>
+        <nav class="nav-menu">
+            <div class="nav-item">
+                <a href="#overview" class="nav-link active" onclick="scrollToSection('overview')">
+                    <i class="fas fa-home me-2"></i>Visão Geral
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#authentication" class="nav-link" onclick="scrollToSection('authentication')">
+                    <i class="fas fa-key me-2"></i>Autenticação
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#users" class="nav-link" onclick="scrollToSection('users')">
+                    <i class="fas fa-users me-2"></i>Usuários
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#tickets" class="nav-link" onclick="scrollToSection('tickets')">
+                    <i class="fas fa-ticket-alt me-2"></i>Tickets
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#setores" class="nav-link" onclick="scrollToSection('setores')">
+                    <i class="fas fa-building me-2"></i>Setores
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#analytics" class="nav-link" onclick="scrollToSection('analytics')">
+                    <i class="fas fa-chart-line me-2"></i>Analytics
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#reports" class="nav-link" onclick="scrollToSection('reports')">
+                    <i class="fas fa-file-alt me-2"></i>Relatórios
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#sla" class="nav-link" onclick="scrollToSection('sla')">
+                    <i class="fas fa-clock me-2"></i>SLA
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#notifications" class="nav-link" onclick="scrollToSection('notifications')">
+                    <i class="fas fa-bell me-2"></i>Notificações
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#status-codes" class="nav-link" onclick="scrollToSection('status-codes')">
+                    <i class="fas fa-code me-2"></i>Códigos de Status
+                </a>
+            </div>
+            <div class="nav-item">
+                <a href="#examples" class="nav-link" onclick="scrollToSection('examples')">
+                    <i class="fas fa-play me-2"></i>Exemplos
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Search Box -->
+        <input type="text" class="search-box" placeholder="🔍 Buscar na documentação..." id="searchBox" onkeyup="filterContent()">
+
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1><i class="fas fa-book me-3"></i>Documentação da API</h1>
+            <p>Sistema de Tickets - Guia completo para integração</p>
+            <div class="mt-3">
+                <span class="badge bg-light text-dark me-2">v1.0.0</span>
+                <span class="badge bg-light text-dark me-2">JWT Auth</span>
+                <span class="badge bg-light text-dark">REST API</span>
+            </div>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section-card" id="overview">
+            <h2><i class="fas fa-home me-2"></i>Visão Geral</h2>
+            <div class="info-box">
+                <strong>URL Base:</strong> <code>https://ceape.systemtickts25.qzz.io</code>
+            </div>
+            <p>A API do Sistema de Tickets oferece endpoints completos para gerenciamento de tickets, usuários, setores e relatórios. Todas as requisições devem incluir autenticação JWT.</p>
+            
+            <h4>Características Principais:</h4>
+            <ul>
+                <li><strong>Autenticação JWT:</strong> Tokens válidos por 6 meses</li>
+                <li><strong>Rate Limiting:</strong> Desabilitado para máxima flexibilidade</li>
+                <li><strong>HTTPS:</strong> Todas as comunicações são criptografadas</li>
+                <li><strong>JSON:</strong> Todas as requisições e respostas em JSON</li>
+            </ul>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="section-card" id="authentication">
+            <h2><i class="fas fa-key me-2"></i>Autenticação</h2>
+            <p>A API utiliza <strong>JWT (JSON Web Token)</strong> para autenticação. O token deve ser incluído no header <code>Authorization</code> de todas as requisições.</p>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-url">/api/v1/users/login</span>
+                </div>
+                <p><strong>Descrição:</strong> Autenticar usuário e obter token JWT</p>
+                
+                <h5>Headers:</h5>
+                <div class="code-block">
+Content-Type: application/json
+                </div>
+                
+                <h5>Body:</h5>
+                <div class="code-block">
+{
+    "username": "admin",
+    "password": "admin123"
+}
+                </div>
+                
+                <h5>Resposta de Sucesso:</h5>
+                <span class="status-badge status-200">200 OK</span>
+                <div class="code-block">
+{
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+        "id": 1,
+        "username": "admin",
+        "role": "admin",
+        "setores": [
+            {
+                "id": 1,
+                "nome": "Administração"
+            }
+        ]
+    }
+}
+                </div>
+                
+                <div class="success-box">
+                    <strong>⏰ Duração do Token:</strong> 6 meses (180 dias) - Ideal para sistemas 24/7
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div class="section-card" id="users">
+            <h2><i class="fas fa-users me-2"></i>Usuários</h2>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/users</span>
+                </div>
+                <p><strong>Descrição:</strong> Listar todos os usuários (apenas admin)</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-401">401 Unauthorized</span>
+                <span class="status-badge status-403">403 Forbidden</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-url">/api/v1/users</span>
+                </div>
+                <p><strong>Descrição:</strong> Criar novo usuário (apenas admin)</p>
+                <span class="status-badge status-201">201 Created</span>
+                <span class="status-badge status-400">400 Bad Request</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-put">PUT</span>
+                    <span class="endpoint-url">/api/v1/users/:id</span>
+                </div>
+                <p><strong>Descrição:</strong> Atualizar dados de um usuário (apenas admin)</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-404">404 Not Found</span>
+            </div>
+        </div>
+
+        <!-- Tickets Section -->
+        <div class="section-card" id="tickets">
+            <h2><i class="fas fa-ticket-alt me-2"></i>Tickets</h2>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-url">/api/v1/tickets</span>
+                </div>
+                <p><strong>Descrição:</strong> Criar um novo ticket</p>
+                <span class="status-badge status-201">201 Created</span>
+                <span class="status-badge status-400">400 Bad Request</span>
+                
+                <h5>Body:</h5>
+                <div class="code-block">
+{
+    "titulo": "Problema com impressora",
+    "descricao": "A impressora não está funcionando corretamente",
+    "cpfCnpj": "123.456.789-00",
+    "nomeCliente": "João Silva",
+    "numeroContato": "(11) 99999-9999",
+    "prioridade": "alta",
+    "areaResponsavel": "TI"
+}
+                </div>
+                
+                <h5>Campos do Body:</h5>
+                <ul>
+                    <li><code>titulo</code> (string, obrigatório): Título do ticket</li>
+                    <li><code>descricao</code> (string, obrigatório): Descrição detalhada do problema</li>
+                    <li><code>cpfCnpj</code> (string, opcional): CPF ou CNPJ do cliente (formato: 000.000.000-00 ou 00.000.000/0000-00)</li>
+                    <li><code>nomeCliente</code> (string, opcional): Nome completo do cliente</li>
+                    <li><code>numeroContato</code> (string, opcional): Número de telefone do cliente (formato: (11) 99999-9999)</li>
+                    <li><code>prioridade</code> (string, opcional): Prioridade do ticket (baixa, media, alta) - padrão: media</li>
+                    <li><code>areaResponsavel</code> (string, opcional): Setor responsável pelo ticket</li>
+                </ul>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/tickets</span>
+                </div>
+                <p><strong>Descrição:</strong> Listar tickets com paginação e filtros</p>
+                <span class="status-badge status-200">200 OK</span>
+                
+                <h5>Query Parameters:</h5>
+                <ul>
+                    <li><code>page</code> (number, opcional): Página (padrão: 1)</li>
+                    <li><code>limit</code> (number, opcional): Itens por página (padrão: 10)</li>
+                    <li><code>status</code> (string, opcional): Filtrar por status</li>
+                    <li><code>prioridade</code> (string, opcional): Filtrar por prioridade</li>
+                    <li><code>setor</code> (string, opcional): Filtrar por setor</li>
+                    <li><code>search</code> (string, opcional): Buscar por título ou descrição</li>
+                </ul>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/tickets/:id</span>
+                </div>
+                <p><strong>Descrição:</strong> Obter detalhes de um ticket específico</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-404">404 Not Found</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-put">PUT</span>
+                    <span class="endpoint-url">/api/v1/tickets/:id</span>
+                </div>
+                <p><strong>Descrição:</strong> Atualizar status ou dados de um ticket</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-404">404 Not Found</span>
+            </div>
+        </div>
+
+        <!-- Setores Section -->
+        <div class="section-card" id="setores">
+            <h2><i class="fas fa-building me-2"></i>Setores</h2>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/setores</span>
+                </div>
+                <p><strong>Descrição:</strong> Listar todos os setores</p>
+                <span class="status-badge status-200">200 OK</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-post">POST</span>
+                    <span class="endpoint-url">/api/v1/setores</span>
+                </div>
+                <p><strong>Descrição:</strong> Criar um novo setor (apenas admin)</p>
+                <span class="status-badge status-201">201 Created</span>
+                <span class="status-badge status-403">403 Forbidden</span>
+            </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div class="section-card" id="analytics">
+            <h2><i class="fas fa-chart-line me-2"></i>Analytics</h2>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/analytics/dashboard</span>
+                </div>
+                <p><strong>Descrição:</strong> Obter estatísticas do dashboard</p>
+                <span class="status-badge status-200">200 OK</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/analytics/tickets-periodo</span>
+                </div>
+                <p><strong>Descrição:</strong> Obter estatísticas de tickets por período</p>
+                <span class="status-badge status-200">200 OK</span>
+            </div>
+        </div>
+
+        <!-- Reports Section -->
+        <div class="section-card" id="reports">
+            <h2><i class="fas fa-file-alt me-2"></i>Relatórios</h2>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/reports/tickets</span>
+                </div>
+                <p><strong>Descrição:</strong> Baixar relatório de tickets em CSV</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-403">403 Forbidden</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/reports/tickets-paginado</span>
+                </div>
+                <p><strong>Descrição:</strong> Obter relatório de tickets com paginação</p>
+                <span class="status-badge status-200">200 OK</span>
+            </div>
+        </div>
+
+        <!-- SLA Section -->
+        <div class="section-card" id="sla">
+            <h2><i class="fas fa-clock me-2"></i>SLA</h2>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/sla</span>
+                </div>
+                <p><strong>Descrição:</strong> Listar todos os SLAs</p>
+                <span class="status-badge status-200">200 OK</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/sla/alertas</span>
+                </div>
+                <p><strong>Descrição:</strong> Obter tickets com SLA vencido ou próximo do vencimento</p>
+                <span class="status-badge status-200">200 OK</span>
+            </div>
+        </div>
+
+        <!-- Notifications Section -->
+        <div class="section-card" id="notifications">
+            <h2><i class="fas fa-bell me-2"></i>Notificações</h2>
+            
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/notifications</span>
+                </div>
+                <p><strong>Descrição:</strong> Listar notificações do usuário</p>
+                <span class="status-badge status-200">200 OK</span>
+            </div>
+        </div>
+
+        <!-- Status Codes Section -->
+        <div class="section-card" id="status-codes">
+            <h2><i class="fas fa-code me-2"></i>Códigos de Status HTTP</h2>
+            
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descrição</th>
+                            <th>Uso</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-badge status-200">200</span></td>
+                            <td>OK - Requisição bem-sucedida</td>
+                            <td>GET, PUT, DELETE</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-201">201</span></td>
+                            <td>Created - Recurso criado com sucesso</td>
+                            <td>POST</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-400">400</span></td>
+                            <td>Bad Request - Dados inválidos</td>
+                            <td>Validação de entrada</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-401">401</span></td>
+                            <td>Unauthorized - Token inválido ou ausente</td>
+                            <td>Autenticação</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-403">403</span></td>
+                            <td>Forbidden - Acesso negado</td>
+                            <td>Autorização</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-404">404</span></td>
+                            <td>Not Found - Recurso não encontrado</td>
+                            <td>Recursos inexistentes</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-badge status-500">500</span></td>
+                            <td>Internal Server Error - Erro interno do servidor</td>
+                            <td>Erros do servidor</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Examples Section -->
+        <div class="section-card" id="examples">
+            <h2><i class="fas fa-play me-2"></i>Exemplos de Uso</h2>
+            
+            <div class="endpoint-card">
+                <h4><i class="fas fa-terminal me-2"></i>Exemplo com cURL</h4>
+                <div class="code-block">
+# Login
+curl -X POST https://ceape.systemtickts25.qzz.io/api/v1/users/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}'
+
+# Criar Ticket
+curl -X POST https://ceape.systemtickts25.qzz.io/api/v1/tickets \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"titulo": "Teste", "descricao": "Descrição do teste", "cpfCnpj": "123.456.789-00", "nomeCliente": "João Silva", "numeroContato": "(11) 99999-9999", "prioridade": "media"}'
+
+# Listar Tickets
+curl -X GET https://ceape.systemtickts25.qzz.io/api/v1/tickets \
+  -H "Authorization: Bearer YOUR_TOKEN"
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <h4><i class="fab fa-js me-2"></i>Exemplo com JavaScript</h4>
+                <div class="code-block">
+// Login
+const loginResponse = await fetch('https://ceape.systemtickts25.qzz.io/api/v1/users/login', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+        username: 'admin',
+        password: 'admin123'
+    })
+});
+
+const { token } = await loginResponse.json();
+
+// Criar Ticket
+const ticketResponse = await fetch('https://ceape.systemtickts25.qzz.io/api/v1/tickets', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+        titulo: 'Novo Ticket',
+        descricao: 'Descrição do ticket',
+        cpfCnpj: '123.456.789-00',
+        nomeCliente: 'João Silva',
+        numeroContato: '(11) 99999-9999',
+        prioridade: 'alta',
+        areaResponsavel: 'TI'
+    })
+});
+
+const ticket = await ticketResponse.json();
+console.log('Ticket criado:', ticket);
+                </div>
+            </div>
+
+            <div class="endpoint-card">
+                <h4><i class="fab fa-python me-2"></i>Exemplo com Python</h4>
+                <div class="code-block">
+import requests
+
+# Login
+login_data = {
+    'username': 'admin',
+    'password': 'admin123'
+}
+
+response = requests.post(
+    'https://ceape.systemtickts25.qzz.io/api/v1/users/login',
+    json=login_data
+)
+
+token = response.json()['token']
+
+# Criar Ticket
+headers = {
+    'Authorization': f'Bearer {token}',
+    'Content-Type': 'application/json'
+}
+
+ticket_data = {
+    'titulo': 'Ticket Python',
+    'descricao': 'Criado via Python',
+    'cpfCnpj': '123.456.789-00',
+    'nomeCliente': 'João Silva',
+    'numeroContato': '(11) 99999-9999',
+    'prioridade': 'media',
+    'areaResponsavel': 'TI'
+}
+
+response = requests.post(
+    'https://ceape.systemtickts25.qzz.io/api/v1/tickets',
+    json=ticket_data,
+    headers=headers
+)
+
+print('Ticket criado:', response.json())
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section-card text-center">
+            <h4><i class="fas fa-info-circle me-2"></i>Suporte</h4>
+            <p>Para dúvidas ou problemas com a API, entre em contato com a equipe de desenvolvimento.</p>
+            <div class="mt-3">
+                <strong>URL da API:</strong> <code>https://ceape.systemtickts25.qzz.io</code><br>
+                <strong>Versão:</strong> 1.0.0<br>
+                <strong>Última atualização:</strong> Agosto 2025
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // Mobile sidebar toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Smooth scrolling
+        function scrollToSection(sectionId) {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Close mobile sidebar
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.remove('open');
+        }
+
+        // Search functionality
+        function filterContent() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const sections = document.querySelectorAll('.section-card');
+            
+            sections.forEach(section => {
+                const text = section.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        // Copy code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeBlocks = document.querySelectorAll('.code-block');
+            codeBlocks.forEach(block => {
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = 'Copiar';
+                copyBtn.onclick = function() {
+                    navigator.clipboard.writeText(block.textContent.trim());
+                    copyBtn.textContent = 'Copiado!';
+                    setTimeout(() => {
+                        copyBtn.textContent = 'Copiar';
+                    }, 2000);
+                };
+                block.parentNode.insertBefore(copyBtn, block.nextSibling);
+            });
+        });
+
+        // Highlight active section on scroll
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.section-card');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Initialize Prism.js for syntax highlighting
+        Prism.highlightAll();
+    </script>
+</body>
+</html>
+

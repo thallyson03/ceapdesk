@@ -93,18 +93,40 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="titulo" class="form-label">
-                                    <i class="fas fa-heading me-1"></i>Título
+                                <label for="assunto-select" class="form-label">
+                                    <i class="fas fa-tags me-1"></i>Assunto
                                 </label>
-                                <input type="text" class="form-control" id="titulo" placeholder="Digite o título do ticket" required>
+                                <select class="form-select" id="assunto-select">
+                                    <option value="">Selecione um assunto...</option>
+                                </select>
+                                <input type="text" class="form-control mt-2" id="titulo" placeholder="Ou digite um título personalizado" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="clienteId" class="form-label">
-                                    <i class="fas fa-user me-1"></i>ID do Cliente
+                                <label for="cpfCnpj" class="form-label">
+                                    <i class="fas fa-id-card me-1"></i>CPF/CNPJ do Cliente
                                 </label>
-                                <input type="text" class="form-control" id="clienteId" placeholder="Digite o ID do cliente" required>
+                                <input type="text" class="form-control" id="cpfCnpj" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nomeCliente" class="form-label">
+                                    <i class="fas fa-user me-1"></i>Nome do Cliente
+                                </label>
+                                <input type="text" class="form-control" id="nomeCliente" placeholder="Digite o nome completo do cliente">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="numeroContato" class="form-label">
+                                    <i class="fas fa-phone me-1"></i>Número de Contato
+                                </label>
+                                <input type="tel" class="form-control" id="numeroContato" placeholder="(11) 99999-9999">
                             </div>
                         </div>
                     </div>
@@ -170,6 +192,7 @@
             }
             
             fetchSetores();
+            setupAssuntoHandlers();
         });
         
         document.getElementById('logout-btn').addEventListener('click', () => {
@@ -205,6 +228,63 @@
             });
         };
 
+        const setupAssuntoHandlers = () => {
+            const areaResponsavelSelect = document.getElementById('area-responsavel');
+            const assuntoSelect = document.getElementById('assunto-select');
+            const tituloInput = document.getElementById('titulo');
+
+            // Carregar assuntos quando setor for selecionado
+            areaResponsavelSelect.addEventListener('change', async () => {
+                const setorNome = areaResponsavelSelect.value;
+                if (!setorNome) {
+                    assuntoSelect.innerHTML = '<option value="">Selecione um assunto...</option>';
+                    return;
+                }
+
+                try {
+                    // Buscar ID do setor pelo nome
+                    const setoresResponse = await fetch('/api/v1/setores', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    const setores = await setoresResponse.json();
+                    const setor = setores.find(s => s.nome === setorNome);
+                    
+                    if (!setor) return;
+
+                    // Buscar assuntos do setor
+                    const assuntosResponse = await fetch(`/api/v1/assuntos/setor/${setor.id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    
+                    if (!assuntosResponse.ok) throw new Error('Erro ao buscar assuntos');
+                    
+                    const assuntos = await assuntosResponse.json();
+                    
+                    assuntoSelect.innerHTML = '<option value="">Selecione um assunto...</option>';
+                    assuntos.forEach(assunto => {
+                        const option = document.createElement('option');
+                        option.value = assunto.id;
+                        option.textContent = assunto.nome;
+                        assuntoSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Erro ao carregar assuntos:', error);
+                }
+            });
+
+            // Preencher título quando assunto for selecionado
+            assuntoSelect.addEventListener('change', () => {
+                const selectedOption = assuntoSelect.options[assuntoSelect.selectedIndex];
+                if (assuntoSelect.value) {
+                    tituloInput.value = selectedOption.textContent;
+                }
+            });
+        };
+
         const formatTicketId = (id) => {
             return String(id).padStart(4, '0');
         };
@@ -215,21 +295,29 @@
             const form = e.target;
             const titulo = form.titulo.value;
             const descricao = form.descricao.value;
-            const clienteId = form.clienteId.value;
+            const cpfCnpj = form.cpfCnpj.value;
+            const nomeCliente = form.nomeCliente.value;
+            const numeroContato = form.numeroContato.value;
             const prioridade = form.prioridade.value;
             const areaResponsavel = form['area-responsavel'].value;
+            const assuntoId = form['assunto-select'].value;
+            
+            // Dados do formulário validados
             
             const statusMessage = document.getElementById('status-message');
             statusMessage.innerHTML = '';
             
             try {
+                const requestBody = { titulo, descricao, cpfCnpj, nomeCliente, numeroContato, prioridade, areaResponsavel, assuntoId };
+                // Enviando requisição
+                
                 const response = await fetch('/api/v1/tickets', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
-                    body: JSON.stringify({ titulo, descricao, clienteId, prioridade, areaResponsavel })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (response.status === 401) {
@@ -238,8 +326,11 @@
                     return;
                 }
                 
+                // Resposta recebida
+                
                 if (response.ok) {
                     const novoTicket = await response.json();
+                    // Ticket criado com sucesso
                     statusMessage.innerHTML = `<div class="alert alert-success">Ticket #${formatTicketId(novoTicket.id)} criado com sucesso! Redirecionando...</div>`;
                     form.reset();
                     
@@ -249,6 +340,7 @@
                     }, 1000);
                 } else {
                     const error = await response.json();
+                    console.error('❌ Erro na resposta:', error);
                     statusMessage.innerHTML = `<div class="alert alert-danger">Erro ao criar o ticket: ${error.error}</div>`;
                 }
             } catch (error) {

@@ -5,19 +5,21 @@ const { Ticket, HistoricoTicket, Anotacao, User, SLA, Setor } = require('../mode
 const { authMiddleware } = require('../middleware/auth');
 const { Op } = require('sequelize');
 const notificationService = require('../services/notificationService');
+const SLAService = require('../services/slaService');
 
 // Função para calcular e atualizar status do SLA
 async function atualizarStatusSLA(ticket) {
     const hoje = new Date();
     const dataLimite = new Date(ticket.dataLimiteSLA);
-    const diffTime = dataLimite - hoje;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Calcular dias úteis restantes
+    const diasUteisRestantes = await SLAService.getRemainingBusinessDays(dataLimite, hoje);
     
     let novoStatusSLA = 'dentro_prazo';
     
-    if (diffDays < 0) {
+    if (diasUteisRestantes < 0) {
         novoStatusSLA = 'vencido';
-    } else if (diffDays <= 1) {
+    } else if (diasUteisRestantes <= 1) {
         novoStatusSLA = 'proximo_vencimento';
     }
     
@@ -33,12 +35,10 @@ router.use(authMiddleware);
 // Rota para criar um novo ticket
 router.post('/', async (req, res) => {
     try {
-        const { titulo, descricao, clienteId, prioridade, areaResponsavel } = req.body;
+        const { titulo, descricao, cpfCnpj, nomeCliente, numeroContato, prioridade, areaResponsavel, assuntoId } = req.body;
         
         // Buscar SLA do setor
-        let diasSLA = 3; // SLA padrão
-        let dataLimiteSLA = new Date();
-        dataLimiteSLA.setDate(dataLimiteSLA.getDate() + diasSLA);
+        let diasSLA = 3; // SLA padrão em dias úteis
         
         if (areaResponsavel) {
             const setor = await Setor.findOne({ where: { nome: areaResponsavel } });
@@ -48,16 +48,21 @@ router.post('/', async (req, res) => {
                 });
                 if (sla) {
                     diasSLA = sla.diasSLA;
-                    dataLimiteSLA = new Date();
-                    dataLimiteSLA.setDate(dataLimiteSLA.getDate() + diasSLA);
                 }
             }
         }
+        
+        // Calcular data limite da SLA considerando apenas dias úteis
+        const dataLimiteSLA = await SLAService.calculateSLADueDate(new Date(), diasSLA);
         
         // Criar ticket SEM responsável automático - será atribuído posteriormente
         const novoTicket = await Ticket.create({
             titulo,
             descricao,
+            cpfCnpj,
+            nomeCliente,
+            numeroContato,
+            assuntoId: assuntoId || null,
             setor: areaResponsavel || 'Geral',
             solicitante: req.user.username,
             prioridade: prioridade || 'media',
@@ -72,11 +77,7 @@ router.post('/', async (req, res) => {
         const setorParaNotificar = areaResponsavel || 'Geral';
         notificationService.notifyNewTicket(novoTicket, setorParaNotificar)
             .then(result => {
-                if (result.success) {
-                    console.log(`✅ Notificação enviada: ${result.usersNotified} usuários notificados`);
-                } else {
-                    console.log(`⚠️ Notificação não enviada: ${result.message}`);
-                }
+                // Notificação processada silenciosamente
             })
             .catch(error => {
                 console.error('❌ Erro ao enviar notificação:', error);
@@ -142,7 +143,7 @@ router.put('/:id/assign', async (req, res) => {
             usuario: req.user.username
         });
 
-        console.log(`✅ Ticket ${id} ${responsavel ? 'atribuído para' : 'desatribuído de'} ${responsavel || 'ninguém'} por ${req.user.username}`);
+        // Ticket atribuído/desatribuído silenciosamente
 
         res.status(200).json({ 
             message: responsavel ? `Ticket atribuído para ${responsavel}` : 'Ticket desatribuído',

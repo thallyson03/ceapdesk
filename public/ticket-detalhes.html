@@ -667,9 +667,9 @@
         </div>
         
         <div id="ticket-container">
-            <!-- Layout compacto em uma tela só -->
+            <!-- Layout reorganizado conforme solicitado -->
             <div class="row g-3">
-                <!-- Coluna principal - Detalhes e SLA -->
+                <!-- Coluna esquerda - Detalhes do Ticket e Atualizar Ticket -->
                 <div class="col-lg-6">
                     <!-- Card de detalhes compacto -->
                     <div class="card detail-card compact-card">
@@ -709,21 +709,18 @@
                                 <small class="text-muted">Descrição:</small>
                                 <p class="card-text mb-0 small" id="ticket-descricao"></p>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Card de SLA compacto -->
-                    <div class="card detail-card compact-card">
-                        <div class="card-header bg-warning text-dark py-2">
-                            <h6 class="mb-0">
-                                <i class="fas fa-clock me-2"></i>SLA
-                            </h6>
-                        </div>
-                        <div class="card-body py-2">
-                            <div id="sla-container">
-                                <div class="text-center py-2">
-                                    <i class="fas fa-spinner fa-spin text-muted"></i>
-                                    <small class="text-muted">Carregando...</small>
+                            <div class="row g-2 mt-2">
+                                <div class="col-6">
+                                    <small class="text-muted">CPF/CNPJ:</small>
+                                    <div id="ticket-cpf-cnpj"></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Cliente:</small>
+                                    <div id="ticket-nome-cliente"></div>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Contato:</small>
+                                    <div id="ticket-numero-contato"></div>
                                 </div>
                             </div>
                         </div>
@@ -771,8 +768,25 @@
                     </div>
                 </div>
 
-                <!-- Coluna lateral - Anotações e Histórico -->
+                <!-- Coluna direita - SLA, Anotações e Histórico -->
                 <div class="col-lg-6">
+                    <!-- Card de SLA compacto -->
+                    <div class="card detail-card compact-card">
+                        <div class="card-header bg-warning text-dark py-2">
+                            <h6 class="mb-0">
+                                <i class="fas fa-clock me-2"></i>SLA
+                            </h6>
+                        </div>
+                        <div class="card-body py-2">
+                            <div id="sla-container">
+                                <div class="text-center py-2">
+                                    <i class="fas fa-spinner fa-spin text-muted"></i>
+                                    <small class="text-muted">Carregando...</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Anotações compactas -->
                     <div class="card detail-card compact-card">
                         <div class="card-header bg-info text-white py-2">
@@ -844,6 +858,9 @@
             const ticketResponsavel = document.getElementById('ticket-responsavel');
             const ticketCriador = document.getElementById('ticket-criador');
             const ticketDataCriacao = document.getElementById('ticket-data-criacao');
+            const ticketCpfCnpj = document.getElementById('ticket-cpf-cnpj');
+            const ticketNomeCliente = document.getElementById('ticket-nome-cliente');
+            const ticketNumeroContato = document.getElementById('ticket-numero-contato');
             const historicoContainer = document.getElementById('historico-container');
             const formUpdate = document.getElementById('form-update');
             const statusSelect = document.getElementById('status-update');
@@ -1108,7 +1125,7 @@
         
             const fetchTicketDetails = async () => {
                 try {
-                    console.log('Buscando detalhes do ticket...');
+                    // Buscando detalhes do ticket
                     const response = await fetch(`/api/v1/tickets/${ticketId}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
@@ -1124,7 +1141,7 @@
                     }
         
                     const ticket = await response.json();
-                    console.log('Detalhes do ticket recebidos:', ticket);
+                    // Detalhes do ticket recebidos
                                          renderTicketDetails(ticket);
                      renderAnotacoes(ticket.anotacoes);
                      // Todos os usuários podem atualizar tickets (com restrições)
@@ -1143,6 +1160,11 @@
                 ticketDescricao.textContent = ticket.descricao;
                 ticketCriador.textContent = ticket.solicitante || 'Não informado';
                 ticketDataCriacao.textContent = new Date(ticket.createdAt).toLocaleString();
+                
+                // Exibir dados do cliente
+                ticketCpfCnpj.textContent = ticket.cpfCnpj || 'Não informado';
+                ticketNomeCliente.textContent = ticket.nomeCliente || 'Não informado';
+                ticketNumeroContato.textContent = ticket.numeroContato || 'Não informado';
                 
                 ticketStatus.innerHTML = `<span class="badge ${getStatusBadgeClass(ticket.status)}">${ticket.status}</span>`;
                 ticketPrioridade.innerHTML = `<span class="badge ${getPriorityBadgeClass(ticket.prioridade)}">${ticket.prioridade}</span>`;
@@ -1208,15 +1230,15 @@
                  // Todos os usuários podem carregar usuários do setor
                  await loadUsers(ticket.responsavel);
          
-                 console.log('Preenchendo formulário de atualização...');
-                 statusSelect.value = ticket.status;
-                 prioridadeSelect.value = ticket.prioridade;
-                 console.log(`Valores definidos: Status=${statusSelect.value}, Prioridade=${prioridadeSelect.value}`);
+                                 // Preenchendo formulário de atualização
+                statusSelect.value = ticket.status;
+                prioridadeSelect.value = ticket.prioridade;
+                // Valores definidos silenciosamente
              };
 
             const loadSectors = async (currentSetor) => {
                 try {
-                    console.log('Buscando setores...');
+                    // Buscando setores
                     const response = await fetch('/api/v1/setores', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
@@ -1226,7 +1248,7 @@
                         const selected = setor.nome === currentSetor ? 'selected' : '';
                         setorSelect.innerHTML += `<option value="${setor.nome}" ${selected}>${setor.nome}</option>`;
                     });
-                    console.log('Setores carregados:', setores);
+                    // Setores carregados
                 } catch (error) {
                     console.error('Erro ao carregar setores:', error);
                 }
@@ -1235,44 +1257,41 @@
             // Função para obter os setores do usuário logado
             const getUserSetores = async () => {
                 try {
-                    console.log('🔍 Iniciando getUserSetores...');
-                    console.log('🔍 Token:', token ? token.substring(0, 50) + '...' : 'null');
+                    // Iniciando getUserSetores
                     
                     // Decodificar o token para obter os setores
                     const tokenData = JSON.parse(atob(token.split('.')[1]));
-                    console.log('🔍 Token data:', tokenData);
+                    // Token data obtido
                     
                     if (tokenData.setores && tokenData.setores.length > 0) {
                         const setores = tokenData.setores.map(s => s.nome);
-                        console.log('✅ Setores encontrados:', setores);
+                        // Setores encontrados
                         return setores;
                     } else {
-                        console.log('⚠️ Nenhum setor encontrado, retornando TI e RECEBIMENTO');
+                        // Nenhum setor encontrado, retornando padrão
                         return ['TI', 'RECEBIMENTO'];
                     }
                 } catch (error) {
                     console.error('❌ Erro ao obter setores do usuário:', error);
                     console.error('❌ Stack trace:', error.stack);
-                    console.log('🔄 Retornando setores padrão devido ao erro');
+                    // Retornando setores padrão devido ao erro
                     return ['TI', 'RECEBIMENTO'];
                 }
             };
         
                          const loadUsers = async (currentUser) => {
                  try {
-                     console.log('🔍 Iniciando loadUsers...');
-                     console.log('👤 Role do usuário:', userRole);
-                     console.log('👤 Usuário atual:', currentUser);
+                     // Iniciando loadUsers
                      
                      // Obter o setor do ticket
                      const ticketSetor = document.getElementById('ticket-setor').textContent;
-                     console.log('🎫 Setor do ticket:', ticketSetor);
+                     // Setor do ticket obtido
                      
                      let users = [];
                      
                      // Se o usuário é admin, buscar todos os usuários
                      if (userRole && userRole === 'admin') {
-                         console.log('👑 Usuário é admin, buscando todos os usuários...');
+                         // Usuário é admin, buscando todos os usuários
                          const response = await fetch('/api/v1/users', {
                              headers: { 'Authorization': `Bearer ${token}` }
                          });
@@ -1282,30 +1301,28 @@
                          }
                          
                          users = await response.json();
-                         console.log('✅ Usuários encontrados (admin):', users.length);
+                         // Usuários encontrados (admin)
                      } else {
                          // Para usuários normais, buscar usuários de todos os seus setores
-                         console.log('👤 Usuário normal, buscando usuários dos setores...');
+                         // Usuário normal, buscando usuários dos setores
                          const userSetores = await getUserSetores();
-                         console.log('🏷️ Setores do usuário:', userSetores);
+                         // Setores do usuário obtidos
                          
                          // Buscar usuários de cada setor
                          for (const setor of userSetores) {
                              try {
-                                 console.log(`🔍 Buscando usuários do setor: ${setor}`);
+                                 // Buscando usuários do setor
                                  const url = `/api/v1/users/setor/${encodeURIComponent(setor)}`;
-                                 console.log(`🔍 URL da requisição: ${url}`);
                                  
                                  const response = await fetch(url, {
                                      headers: { 'Authorization': `Bearer ${token}` }
                                  });
                                  
-                                 console.log(`🔍 Status da resposta: ${response.status}`);
+                                 // Status da resposta obtido
                                  
                                  if (response.ok) {
                                      const setorUsers = await response.json();
-                                     console.log(`✅ Usuários encontrados no setor ${setor}:`, setorUsers.length);
-                                     console.log(`✅ Dados dos usuários:`, setorUsers);
+                                     // Usuários encontrados no setor
                                      users = users.concat(setorUsers);
                                  } else {
                                      console.warn(`⚠️ Erro na resposta do setor ${setor}:`, response.status);
@@ -1328,20 +1345,19 @@
                              }
                          });
                          users = uniqueUsers;
-                         console.log('🔄 Usuários após remoção de duplicatas:', users.length);
+                         // Usuários após remoção de duplicatas
                      }
                      
                      responsavelSelect.innerHTML = '<option value="">Não atribuído</option>';
                      
-                     console.log('📊 Total de usuários encontrados:', users.length);
-                     console.log('👥 Usuários encontrados:', users);
+                     // Total de usuários encontrados
                      
                      users.forEach(u => {
                          const selected = u.username === currentUser ? 'selected' : '';
                          responsavelSelect.innerHTML += `<option value="${u.username}" ${selected}>${u.username}</option>`;
                      });
                      
-                     console.log('✅ Usuários carregados no select:', responsavelSelect.innerHTML);
+                     // Usuários carregados no select
                  } catch (error) {
                      console.error('Erro ao carregar usuários:', error);
                      // Em caso de erro, mostrar pelo menos a opção "Não atribuído"
@@ -1391,7 +1407,7 @@
                     return;
                 }
                 
-                console.log('Tentando adicionar anotação:', anotacao);
+                // Tentando adicionar anotação
                 try {
                     const response = await fetch(`/api/v1/tickets/${ticketId}/anotacoes`, {
                         method: 'POST',
@@ -1403,7 +1419,7 @@
                     });
                     
                     if (response.ok) {
-                        console.log('Anotação adicionada com sucesso.');
+                        // Anotação adicionada com sucesso
                         anotacaoText.value = '';
                         fetchTicketDetails(); // Recarrega os detalhes para mostrar a nova anotação
                     } else {
@@ -1431,7 +1447,7 @@
                     updatedData.setor = setorSelect.value;
                 }
                 
-                console.log('Enviando atualização do ticket:', updatedData);
+                // Enviando atualização do ticket
 
                 try {
                     const response = await fetch(`/api/v1/tickets/${ticketId}`, {
@@ -1445,7 +1461,7 @@
                     
                     if (response.ok) {
                         statusMessage.innerHTML = '<div class="alert alert-success">Ticket atualizado com sucesso!</div>';
-                        console.log('Ticket atualizado com sucesso. Recarregando detalhes...');
+                        // Ticket atualizado com sucesso
                         fetchTicketDetails();
                     } else {
                         const error = await response.json();

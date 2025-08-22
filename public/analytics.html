@@ -186,22 +186,22 @@
 
                         // Declarar todas as funções primeiro
         const fetchUsers = async () => {
-            console.log('Fetching users...');
+            // Fetching users
             try {
                 const response = await fetch('/api/v1/analytics/users', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                console.log('Users response status:', response.status);
+                // Users response status checked
                 
                 if (!response.ok) {
                     throw new Error('Erro ao buscar a lista de usuários.');
                 }
                 const users = await response.json();
-                console.log('Users received:', users);
+                // Users received
                 populateUserDropdown(users);
-                console.log('Calling fetchProductivity...');
+                // Calling fetchProductivity
                 fetchProductivity(); // Chama a função para buscar os dados após popular a lista
             } catch (error) {
                 console.error('Erro ao buscar usuários:', error);

@@ -21,6 +21,14 @@ module.exports = (sequelize) => {
                 as: 'usuarios'
             });
         }
+
+        // Relação um-para-muitos com Assunto
+        if (models.Assunto) {
+            Setor.hasMany(models.Assunto, {
+                foreignKey: 'setorId',
+                as: 'assuntos'
+            });
+        }
     };
 
     return Setor;

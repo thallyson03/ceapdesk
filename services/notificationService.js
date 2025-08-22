@@ -107,13 +107,13 @@ class NotificationService {
      */
     async notifyNewTicket(ticket, setorNome) {
         try {
-            console.log(`🔔 Iniciando notificação para setor: ${setorNome}`);
+            // Iniciando notificação
             
             // Buscar usuários do setor
             const users = await this.getUsersBySetor(setorNome);
             
             if (!users || users.length === 0) {
-                console.log(`⚠️ Nenhum usuário encontrado para o setor: ${setorNome}`);
+                // Nenhum usuário encontrado para o setor
                 return {
                     success: false,
                     message: 'Nenhum usuário encontrado para o setor',
@@ -125,7 +125,7 @@ class NotificationService {
             const usersWithEmail = users.filter(user => user.email);
             
             if (usersWithEmail.length === 0) {
-                console.log(`⚠️ Nenhum usuário com email válido encontrado para o setor: ${setorNome}`);
+                // Nenhum usuário com email válido encontrado
                 return {
                     success: false,
                     message: 'Nenhum usuário com email válido encontrado',
@@ -136,7 +136,7 @@ class NotificationService {
             // Enviar notificação por email
             await emailService.sendTicketNotification(ticket, usersWithEmail, setorNome);
 
-            console.log(`✅ Notificação enviada com sucesso para ${usersWithEmail.length} usuários do setor ${setorNome}`);
+            // Notificação enviada com sucesso
 
             return {
                 success: true,

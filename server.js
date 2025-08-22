@@ -10,6 +10,8 @@ const ticketsRoutes = require('./routes/tickets');
 const usersRoutes = require('./routes/users');
 const analyticsRoutes = require('./routes/analytics');
 const setoresRoutes = require('./routes/setores');
+const assuntosRoutes = require('./routes/assuntos');
+const feriadosRoutes = require('./routes/feriados');
 const reportsRoutes = require('./routes/reports');
 const slaRoutes = require('./routes/sla');
 const config = require('./config');
@@ -166,6 +168,8 @@ app.use('/api/v1/tickets', ticketsRoutes);
 app.use('/api/v1/users', usersRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/setores', setoresRoutes);
+app.use('/api/v1/assuntos', assuntosRoutes);
+app.use('/api/v1/feriados', feriadosRoutes);
 app.use('/api/v1/reports', reportsRoutes);
 app.use('/api/v1/sla', slaRoutes);
 app.use('/api/v1/notifications', require('./routes/notifications'));
@@ -197,6 +201,10 @@ app.get('/reports.html', (req, res) => {
 });
 app.get('/dashboard.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+app.get('/dashboard-grafico.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'dashboard-grafico.html'));
 });
 app.get('/criar-ticket.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'criar-ticket.html'));
@@ -253,24 +261,16 @@ sequelize.sync({ force: false }).then(async () => {
         });
         
         if (config.NODE_ENV === 'development') {
-            console.log('⚠️  Usuário admin criado com senha padrão:', adminPassword);
-            console.log('🔐 IMPORTANTE: Altere a senha do admin no primeiro login!');
-        } else {
-            console.log('✅ Usuário admin criado com sucesso.');
         }
     }
     
     const existingSetor = await Setor.findOne({ where: { nome: 'Administração' } });
     if (!existingSetor) {
         await Setor.create({ nome: 'Administração' });
-        console.log('✅ Setor padrão "Administração" criado com sucesso.');
     }
 
     app.listen(PORT, () => {
-        console.log(`🚀 Servidor rodando na porta ${PORT}`);
-        console.log(`🌐 Ambiente: ${config.NODE_ENV}`);
-        console.log(`🔒 CORS Origins: ${config.ALLOWED_ORIGINS.join(', ')}`);
-        console.log(`📊 Rate Limit: ${config.RATE_LIMIT_MAX_REQUESTS} req/${Math.ceil(config.RATE_LIMIT_WINDOW_MS / 1000)}s`);
+        // Servidor iniciado silenciosamente
     });
 }).catch(err => {
     console.error('❌ Erro ao conectar com o banco de dados:', err);

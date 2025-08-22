@@ -4,9 +4,9 @@ const { Sequelize } = require('sequelize');
 const env = process.env.NODE_ENV || 'development';
 
 // Configuração base para PostgreSQL
-const baseConfig = {
+const postgresConfig = {
     dialect: 'postgres',
-    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    logging: false,
     define: {
         timestamps: true,
         underscored: true
@@ -19,6 +19,29 @@ const baseConfig = {
     }
 };
 
+// Configuração base para Oracle
+const oracleConfig = {
+    dialect: 'oracle',
+    logging: false,
+    define: {
+        timestamps: true,
+        underscored: true
+    },
+    pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+    },
+    dialectOptions: {
+        connectString: process.env.ORACLE_CONNECT_STRING,
+        // Configurações específicas do Oracle
+        oracleClient: {
+            libDir: process.env.ORACLE_CLIENT_LIB_DIR || null
+        }
+    }
+};
+
 // Configuração para desenvolvimento (PostgreSQL)
 const development = {
     username: process.env.DB_USER || 'postgres',
@@ -26,10 +49,19 @@ const development = {
     database: process.env.DB_NAME || 'sistema_tickets_dev',
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
-    ...baseConfig
+    ...postgresConfig
 };
 
-
+// Configuração para Oracle Free Tier
+const oracle = {
+    username: process.env.ORACLE_USER,
+    password: process.env.ORACLE_PASSWORD,
+    database: process.env.ORACLE_DATABASE,
+    host: process.env.ORACLE_HOST,
+    port: process.env.ORACLE_PORT || 1521,
+    serviceName: process.env.ORACLE_SERVICE_NAME,
+    ...oracleConfig
+};
 
 // Configuração para produção (PostgreSQL)
 const production = {
@@ -38,10 +70,11 @@ const production = {
     database: process.env.DB_NAME,
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    ...baseConfig
+    ...postgresConfig
 };
 
 module.exports = {
     development,
-    production
+    production,
+    oracle
 };

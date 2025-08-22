@@ -50,7 +50,7 @@ const authMiddleware = (req, res, next) => {
         
         // Log de acesso bem-sucedido (apenas para rotas sensíveis)
         if (req.path.includes('/admin') || req.path.includes('/reports') || req.path.includes('/analytics')) {
-            console.log(`✅ Acesso autorizado - Usuario: ${user.username} - Role: ${user.role} - Rota: ${req.path} - IP: ${req.ip}`);
+            // Acesso autorizado silenciosamente
         }
         
         next();
