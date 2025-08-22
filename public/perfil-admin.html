@@ -112,6 +112,20 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
         
+        .delete-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+        
         .back-btn {
             background: #6c757d;
             border: none;
@@ -374,7 +388,54 @@
         </div>
     </div>
 
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteUserModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Exclusão
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+                    </div>
+                    <p>Tem certeza que deseja excluir o usuário <strong id="delete-username"></strong>?</p>
+                    <p class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Esta ação irá:
+                    </p>
+                    <ul class="text-muted small">
+                        <li>Remover permanentemente o usuário do sistema</li>
+                        <li>Remover todas as associações com setores</li>
+                        <li><strong>Tickets fechados</strong> serão mantidos no histórico</li>
+                        <li><strong>Tickets abertos/em progresso</strong> impedirão a exclusão</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" id="confirm-delete-btn">
+                        <i class="fas fa-trash me-2"></i>Excluir Usuário
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Cache busting para forçar reload da página
+        if (performance.navigation.type === 1) {
+            // Página foi recarregada, adicionar timestamp para evitar cache
+            const url = new URL(window.location);
+            url.searchParams.set('v', Date.now());
+            window.history.replaceState({}, '', url);
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -474,9 +535,19 @@
                                     </small>
                                 </div>
                             </div>
-                            <button class="btn edit-btn" data-user-id="${user.id}">
-                                <i class="fas fa-edit me-2"></i>Editar
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button class="btn edit-btn" data-user-id="${user.id}">
+                                    <i class="fas fa-edit me-2"></i>Editar
+                                </button>
+                                ${user.id != JSON.parse(atob(localStorage.getItem('token').split('.')[1])).id ? 
+                                    `<button class="btn btn-danger delete-btn" data-user-id="${user.id}" data-username="${user.username}">
+                                        <i class="fas fa-trash me-2"></i>Excluir
+                                    </button>` : 
+                                    `<button class="btn btn-secondary" disabled title="Você não pode excluir sua própria conta">
+                                        <i class="fas fa-user-shield me-2"></i>Sua Conta
+                                    </button>`
+                                }
+                            </div>
                         </div>
                     </div>
                 `;
@@ -496,6 +567,22 @@
                         const editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
                         editUserModal.show();
                     }
+                });
+            });
+
+            // Event listeners para botões de excluir
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const userId = e.target.closest('.delete-btn').getAttribute('data-user-id');
+                    const username = e.target.closest('.delete-btn').getAttribute('data-username');
+                    
+                    // Preencher o modal de confirmação
+                    document.getElementById('delete-username').textContent = username;
+                    document.getElementById('confirm-delete-btn').setAttribute('data-user-id', userId);
+                    
+                    // Mostrar o modal
+                    const deleteUserModal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+                    deleteUserModal.show();
                 });
             });
         };
@@ -578,6 +665,83 @@
                 `;
             }
         });
+
+        // Event listener para confirmar exclusão de usuário
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            const userId = document.getElementById('confirm-delete-btn').getAttribute('data-user-id');
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            const originalText = confirmBtn.innerHTML;
+            
+            // Desabilitar botão e mostrar loading
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Excluindo...';
+            
+            try {
+                console.log('Tentando excluir usuário:', userId);
+                const token = localStorage.getItem('token');
+                console.log('Token:', token ? 'Presente' : 'Ausente');
+                
+                const response = await fetch(`/api/v1/users/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Fechar modal
+                    const deleteUserModal = bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'));
+                    deleteUserModal.hide();
+                    
+                    // Mostrar mensagem de sucesso
+                    showAlert('success', 'Usuário excluído com sucesso!');
+                    
+                    // Recarregar lista de usuários
+                    fetchUsers();
+                } else {
+                    showAlert('danger', `Erro ao excluir usuário: ${result.error}`);
+                }
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                showAlert('danger', 'Erro de conexão ao excluir usuário.');
+            } finally {
+                // Restaurar botão
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = originalText;
+            }
+        });
+
+        // Função para mostrar alertas
+        function showAlert(type, message) {
+            const alertContainer = document.createElement('div');
+            alertContainer.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertContainer.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertContainer.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertContainer);
+            
+            // Remover alerta automaticamente após 5 segundos
+            setTimeout(() => {
+                if (alertContainer.parentNode) {
+                    alertContainer.remove();
+                }
+            }, 5000);
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

@@ -445,6 +445,8 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
+
+
 // Rota para atualizar usuário (apenas admin)
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     try {
@@ -513,6 +515,74 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
         res.status(200).json(updatedUser);
     } catch (error) {
         console.error('Erro ao atualizar usuário:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para excluir um usuário (apenas admin)
+router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const userId = req.params.id;
+        
+        // Verificar se o usuário existe
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+        
+        // Verificar se não é o próprio usuário logado
+        if (parseInt(userId) === req.user.id) {
+            return res.status(400).json({ error: 'Você não pode excluir sua própria conta.' });
+        }
+        
+        // Verificar se é o último administrador
+        if (user.role === 'admin') {
+            const adminCount = await User.count({ where: { role: 'admin' } });
+            if (adminCount <= 1) {
+                return res.status(400).json({ error: 'Não é possível excluir o último administrador do sistema.' });
+            }
+        }
+        
+        // Verificar se há tickets abertos ou em progresso atribuídos a este usuário
+        const { Ticket } = require('../models');
+        const ticketsAbertos = await Ticket.count({ 
+            where: { 
+                responsavel: user.username,
+                status: {
+                    [Op.in]: ['aberto', 'em progresso']
+                }
+            } 
+        });
+        
+        if (ticketsAbertos > 0) {
+            return res.status(400).json({ 
+                error: `Não é possível excluir o usuário pois existem ${ticketsAbertos} ticket(s) aberto(s) ou em progresso atribuído(s) a ele. Feche ou reatribua os tickets antes de excluir o usuário.` 
+            });
+        }
+        
+        // Verificar se há tickets fechados (para informação)
+        const ticketsFechados = await Ticket.count({ 
+            where: { 
+                responsavel: user.username,
+                status: 'fechado'
+            } 
+        });
+        
+        // Excluir relacionamentos com setores
+        await UserSetor.destroy({ where: { userId: userId } });
+        
+        // Excluir o usuário
+        await user.destroy();
+        
+        // Mensagem de sucesso com informação sobre tickets fechados
+        let message = 'Usuário excluído com sucesso.';
+        if (ticketsFechados > 0) {
+            message += ` ${ticketsFechados} ticket(s) fechado(s) foram encontrados e mantidos no histórico.`;
+        }
+        
+        res.status(200).json({ message });
+    } catch (error) {
+        console.error('Erro ao excluir usuário:', error);
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });
