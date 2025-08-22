@@ -298,9 +298,29 @@
         .success-box {
             background: #d4edda;
             border: 1px solid #c3e6cb;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .validation-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
             border-radius: 8px;
-            padding: 1rem;
-            margin: 1rem 0;
+            margin: 0.5rem 0;
+        }
+
+        .validation-item i {
+            font-size: 1.2rem;
         }
 
         /* Estilos para as novas seções */
@@ -437,6 +457,11 @@
                 <div class="nav-item">
                     <a href="#introducao" class="nav-link active" onclick="scrollToSection('introducao')">
                         <i class="fas fa-home me-2"></i>Introdução
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="#novas-funcionalidades" class="nav-link" onclick="scrollToSection('novas-funcionalidades')">
+                        <i class="fas fa-star me-2"></i>Novas Funcionalidades
                     </a>
                 </div>
                 <div class="nav-item">
@@ -624,6 +649,64 @@
             <div class="alert alert-info">
                 <h5><i class="fas fa-info-circle"></i> Importante</h5>
                 <p>Esta documentação é essencial para desenvolvedores, administradores de sistema e equipes de manutenção. Mantenha-a sempre atualizada conforme o sistema evolui.</p>
+            </div>
+        </div>
+
+        <!-- Novas Funcionalidades Section -->
+        <div class="section-card" id="novas-funcionalidades">
+            <h2><i class="fas fa-star me-2"></i>Novas Funcionalidades</h2>
+            
+            <div class="feature-card">
+                <h4><i class="fas fa-user-minus me-2"></i>Gestão Avançada de Usuários</h4>
+                <p><strong>Versão:</strong> 1.1.0 | <strong>Data:</strong> Agosto 2025</p>
+                
+                <h5>Funcionalidades Implementadas:</h5>
+                <ul>
+                    <li><strong>Exclusão de Usuários:</strong> Nova rota DELETE para remover usuários do sistema</li>
+                    <li><strong>Validações Inteligentes:</strong> Sistema verifica tickets abertos vs fechados</li>
+                    <li><strong>Proteções de Segurança:</strong> Múltiplas camadas de validação</li>
+                    <li><strong>Interface Melhorada:</strong> Modal de confirmação com avisos de segurança</li>
+                </ul>
+                
+                <h5>Validações de Segurança:</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="validation-item">
+                            <i class="fas fa-shield-alt text-success"></i>
+                            <strong>Própria Conta:</strong> Não permite excluir a própria conta
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="validation-item">
+                            <i class="fas fa-shield-alt text-success"></i>
+                            <strong>Último Admin:</strong> Protege o último administrador
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <div class="validation-item">
+                            <i class="fas fa-shield-alt text-success"></i>
+                            <strong>Tickets Abertos:</strong> Impede exclusão com tickets ativos
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="validation-item">
+                            <i class="fas fa-shield-alt text-success"></i>
+                            <strong>Tickets Fechados:</strong> Permite exclusão mantendo histórico
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle"></i> Benefícios</h6>
+                    <ul>
+                        <li><strong>Segurança:</strong> Múltiplas validações protegem contra exclusões acidentais</li>
+                        <li><strong>Flexibilidade:</strong> Permite limpeza de usuários inativos com histórico preservado</li>
+                        <li><strong>Auditoria:</strong> Mantém histórico de tickets fechados para compliance</li>
+                        <li><strong>UX:</strong> Interface intuitiva com confirmações claras</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -1083,6 +1166,42 @@ Content-Type: application/json
                 <span class="status-badge status-200">200 OK</span>
                 <span class="status-badge status-404">404 Not Found</span>
             </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-delete">DELETE</span>
+                    <span class="endpoint-url">/api/v1/users/:id</span>
+                </div>
+                <p><strong>Descrição:</strong> Excluir um usuário (apenas admin)</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-400">400 Bad Request</span>
+                <span class="status-badge status-401">401 Unauthorized</span>
+                <span class="status-badge status-403">403 Forbidden</span>
+                <span class="status-badge status-404">404 Not Found</span>
+                
+                <h5>Validações de Segurança:</h5>
+                <ul>
+                    <li><strong>Própria conta:</strong> Não é possível excluir a própria conta</li>
+                    <li><strong>Último admin:</strong> Não é possível excluir o último administrador</li>
+                    <li><strong>Tickets abertos:</strong> Não é possível excluir usuário com tickets abertos ou em progresso</li>
+                    <li><strong>Tickets fechados:</strong> Permite exclusão mesmo com tickets fechados (mantidos no histórico)</li>
+                </ul>
+                
+                <h5>Resposta de Sucesso:</h5>
+                <div class="code-block">
+{
+    "message": "Usuário excluído com sucesso. 5 ticket(s) fechado(s) foram encontrados e mantidos no histórico."
+}
+                </div>
+                
+                <h5>Possíveis Erros:</h5>
+                <ul>
+                    <li><code>400</code> - "Você não pode excluir sua própria conta."</li>
+                    <li><code>400</code> - "Não é possível excluir o último administrador do sistema."</li>
+                    <li><code>400</code> - "Não é possível excluir o usuário pois existem 2 ticket(s) aberto(s) ou em progresso atribuído(s) a ele. Feche ou reatribua os tickets antes de excluir o usuário."</li>
+                    <li><code>404</code> - "Usuário não encontrado."</li>
+                </ul>
+            </div>
         </div>
 
         <!-- Tickets Section -->
@@ -1346,6 +1465,10 @@ curl -X POST https://ceape.systemtickts25.qzz.io/api/v1/tickets \
 # Listar Tickets
 curl -X GET https://ceape.systemtickts25.qzz.io/api/v1/tickets \
   -H "Authorization: Bearer YOUR_TOKEN"
+
+# Excluir Usuário (apenas admin)
+curl -X DELETE https://ceape.systemtickts25.qzz.io/api/v1/users/3 \
+  -H "Authorization: Bearer YOUR_TOKEN"
                 </div>
             </div>
 
@@ -1386,6 +1509,22 @@ const ticketResponse = await fetch('https://ceape.systemtickts25.qzz.io/api/v1/t
 
 const ticket = await ticketResponse.json();
 console.log('Ticket criado:', ticket);
+
+// Excluir Usuário (apenas admin)
+const deleteUserResponse = await fetch('https://ceape.systemtickts25.qzz.io/api/v1/users/3', {
+    method: 'DELETE',
+    headers: {
+        'Authorization': `Bearer ${token}`
+    }
+});
+
+if (deleteUserResponse.ok) {
+    const result = await deleteUserResponse.json();
+    console.log('Usuário excluído:', result.message);
+} else {
+    const error = await deleteUserResponse.json();
+    console.error('Erro ao excluir usuário:', error.error);
+}
                 </div>
             </div>
 
@@ -1430,6 +1569,19 @@ response = requests.post(
 )
 
 print('Ticket criado:', response.json())
+
+# Excluir Usuário (apenas admin)
+delete_response = requests.delete(
+    'https://ceape.systemtickts25.qzz.io/api/v1/users/3',
+    headers=headers
+)
+
+if delete_response.status_code == 200:
+    result = delete_response.json()
+    print('Usuário excluído:', result['message'])
+else:
+    error = delete_response.json()
+    print('Erro ao excluir usuário:', error['error'])
                 </div>
             </div>
         </div>
