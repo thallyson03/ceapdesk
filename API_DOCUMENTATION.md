@@ -2,7 +2,7 @@
 
 ## 🌐 **URL Base**
 ```
-https://ceape.systemtickts25.qzz.io
+https://centralcrm.ceapebank.com.br
 ```
 
 ## 🔐 **Autenticação**
@@ -993,7 +993,7 @@ Authorization: Bearer <token>
 1. **Criar uma nova Collection**
 2. **Configurar variável de ambiente:**
    - Nome: `base_url`
-   - Valor: `https://ceape.systemtickts25.qzz.io`
+   - Valor: `https://centralcrm.ceapebank.com.br`
 
 3. **Configurar variável de ambiente:**
    - Nome: `token`
@@ -1036,7 +1036,7 @@ Authorization: Bearer {{token}}
     "variable": [
         {
             "key": "base_url",
-            "value": "https://ceape.systemtickts25.qzz.io"
+            "value": "https://centralcrm.ceapebank.com.br"
         },
         {
             "key": "token",
@@ -1134,6 +1134,6 @@ Authorization: Bearer {{token}}
 
 Para dúvidas ou problemas com a API, entre em contato com a equipe de desenvolvimento.
 
-**URL da API:** `https://ceape.systemtickts25.qzz.io`  
+**URL da API:** `https://centralcrm.ceapebank.com.br`  
 **Versão:** 1.0.0  
 **Última atualização:** Agosto 2025

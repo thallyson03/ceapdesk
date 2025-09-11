@@ -104,7 +104,7 @@ O sistema agora inclui um dashboard gráfico avançado com visualizações inter
 - **Performance por Setor**: Análise de eficiência por área
 
 ### **Acesso**
-- URL: `http://localhost:3000/dashboard-grafico.html`
+- URL: `https://centralcrm.ceapebank.com.br/dashboard-grafico.html`
 - Acesso restrito a administradores
 - Documentação completa: `DASHBOARD_GRAFICO_README.md`
 
@@ -142,7 +142,7 @@ Veja o arquivo `MIGRATION_CLIENT_FIELDS.md` para instruções detalhadas.
 ## 🌐 Acesso
 
 Após iniciar o servidor, acesse:
-- **URL:** `http://localhost:3000`
+- **URL:** `https://centralcrm.ceapebank.com.br`
 - **Login:** Use as credenciais admin acima
 
 ## 📁 Estrutura do Projeto

@@ -46,7 +46,7 @@ module.exports = {
     ALLOWED_ORIGINS: process.env.ALLOWED_ORIGINS ? 
         process.env.ALLOWED_ORIGINS.split(',') : 
         (process.env.NODE_ENV === 'production' ? 
-            ['http://129.146.176.225.nip.io', 'http://129.146.176.225', 'https://129.146.176.225.nip.io', 'https://129.146.176.225'] : 
+            ['http://129.146.176.225.nip.io', 'http://129.146.176.225', 'https://129.146.176.225.nip.io', 'https://centralcrm.ceapebank.com.br'] : 
             ['http://localhost:3000', 'http://127.0.0.1:3000']),
     
     // Configurações de rate limiting
