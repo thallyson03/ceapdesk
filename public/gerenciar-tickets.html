@@ -10,24 +10,32 @@
     <link rel="stylesheet" href="css/style.css">
     <style>
         .ticket-card {
-            border-left: 4px solid #007bff;
+            border-left: 4px solid #A8C5E6;
             margin-bottom: 1rem;
+            background: #FFFFFF;
+            transition: all 0.3s ease;
+        }
+        .ticket-card:hover {
+            background: #F8F9FA;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
         .ticket-card.alta {
-            border-left-color: #dc3545;
+            border-left-color: #E8C4C4;
         }
         .ticket-card.media {
-            border-left-color: #ffc107;
+            border-left-color: #F2E6C7;
         }
         .ticket-card.baixa {
-            border-left-color: #28a745;
+            border-left-color: #B8D9D0;
         }
         .status-badge {
             font-size: 0.8em;
+            font-weight: 500;
         }
         .workload-indicator {
             font-size: 0.7em;
-            color: #6c757d;
+            color: #8A8A8A;
         }
         .user-option {
             display: flex;
@@ -36,22 +44,23 @@
         }
         .setor-tag {
             display: inline-block;
-            background-color: #007bff;
-            color: white;
+            background-color: #A8C5E6;
+            color: #5B8BB8;
             padding: 2px 8px;
             border-radius: 12px;
             font-size: 0.8em;
             margin: 2px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
     <div class="container-fluid mt-4">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <a href="/dashboard.html" class="btn btn-secondary">← Voltar para o Dashboard</a>
+            <a href="/dashboard.html" class="btn" style="background-color: #E8E8E8; color: #5A5A5A; border-color: #D0D0D0;">← Voltar para o Dashboard</a>
             <div class="d-flex align-items-center gap-2">
                 <span id="user-info" class="me-2 fw-bold"></span>
-                <button id="logout-btn" class="btn btn-danger">Sair</button>
+                <button id="logout-btn" class="btn btn-soft-danger">Sair</button>
             </div>
         </div>
         
@@ -95,7 +104,7 @@
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title text-primary" id="total-tickets">0</h5>
+                        <h5 class="card-title" id="total-tickets" style="color: #7FA8D4;">0</h5>
                         <p class="card-text">Total de Tickets</p>
                     </div>
                 </div>
@@ -103,7 +112,7 @@
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title text-warning" id="tickets-abertos">0</h5>
+                        <h5 class="card-title" id="tickets-abertos" style="color: #E8D5A3;">0</h5>
                         <p class="card-text">Em Aberto</p>
                     </div>
                 </div>
@@ -111,7 +120,7 @@
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title text-info" id="tickets-andamento">0</h5>
+                        <h5 class="card-title" id="tickets-andamento" style="color: #9BB5D1;">0</h5>
                         <p class="card-text">Em Andamento</p>
                     </div>
                 </div>
@@ -119,7 +128,7 @@
             <div class="col-md-3">
                 <div class="card text-center">
                     <div class="card-body">
-                        <h5 class="card-title text-success" id="tickets-resolvidos">0</h5>
+                        <h5 class="card-title" id="tickets-resolvidos" style="color: #8FC4B8;">0</h5>
                         <p class="card-text">Resolvidos</p>
                     </div>
                 </div>
@@ -133,7 +142,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Tickets</h5>
                         <div>
-                            <button id="atribuir-automatico" class="btn btn-success btn-sm">
+                            <button id="atribuir-automatico" class="btn btn-soft-success btn-sm">
                                 <i class="fas fa-magic"></i> Atribuir Automaticamente
                             </button>
                         </div>
@@ -181,8 +190,45 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="modal-salvar">Salvar</button>
+                    <button type="button" class="btn" style="background-color: #E8E8E8; color: #5A5A5A; border-color: #D0D0D0;" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-soft-primary" id="modal-salvar">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para excluir ticket -->
+    <div class="modal fade" id="excluirModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #D4A5A5 0%, #C49595 100%);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="alert alert-warning">
+                        <i class="fas fa-info-circle"></i> Você está prestes a excluir um ticket. Esta ação pode ser revertida (soft delete).
+                    </p>
+                    <p><strong>Ticket:</strong> <span id="modal-excluir-titulo"></span></p>
+                    <p><strong>ID:</strong> <span id="modal-excluir-id"></span></p>
+                    
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="modal-excluir-permanente">
+                        <label class="form-check-label" for="modal-excluir-permanente" style="color: #A87070;">
+                            <strong>Excluir permanentemente</strong> (não pode ser revertido)
+                        </label>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle"></i> Por padrão, o ticket será excluído de forma reversível (soft delete), preservando histórico e anotações.
+                    </small>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background-color: #E8E8E8; color: #5A5A5A; border-color: #D0D0D0;" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-soft-danger" id="modal-excluir-confirmar">
+                        <i class="fas fa-trash"></i> Excluir
+                    </button>
                 </div>
             </div>
         </div>
@@ -273,6 +319,30 @@
                 }
             };
 
+            // Função para adicionar botão de ver excluídos (executa apenas uma vez)
+            const adicionarBotaoExcluidos = () => {
+                if (payload.role === 'admin') {
+                    const cardHeader = document.querySelector('.card-header');
+                    const btnExcluidosExistente = cardHeader?.querySelector('a[href="/tickets-excluidos.html"]');
+                    
+                    if (cardHeader && !btnExcluidosExistente) {
+                        const divBotoes = cardHeader.querySelector('div:last-child');
+                        if (divBotoes) {
+                            const btnExcluidos = document.createElement('a');
+                            btnExcluidos.href = '/tickets-excluidos.html';
+                            btnExcluidos.className = 'btn btn-outline-secondary btn-sm me-2';
+                            btnExcluidos.innerHTML = '<i class="fas fa-trash"></i> Ver Excluídos';
+                            const btnAtribuir = divBotoes.querySelector('#atribuir-automatico');
+                            if (btnAtribuir && btnAtribuir.parentNode === divBotoes) {
+                                divBotoes.insertBefore(btnExcluidos, btnAtribuir);
+                            } else {
+                                divBotoes.insertBefore(btnExcluidos, divBotoes.firstChild);
+                            }
+                        }
+                    }
+                }
+            };
+
             // Função para renderizar tickets
             const renderTickets = () => {
                 if (tickets.length === 0) {
@@ -289,8 +359,8 @@
                                     <p class="card-text text-muted">${ticket.descricao.substring(0, 100)}${ticket.descricao.length > 100 ? '...' : ''}</p>
                                     <div class="d-flex gap-2 mb-2">
                                         <span class="badge bg-primary status-badge">${ticket.setor}</span>
-                                        <span class="badge bg-${getStatusColor(ticket.status)} status-badge">${formatStatus(ticket.status)}</span>
-                                        <span class="badge bg-${getPrioridadeColor(ticket.prioridade)} status-badge">${formatPrioridade(ticket.prioridade)}</span>
+                                        <span class="badge badge-${getStatusColor(ticket.status)} status-badge">${formatStatus(ticket.status)}</span>
+                                        <span class="badge badge-${getPrioridadeColor(ticket.prioridade)} status-badge">${formatPrioridade(ticket.prioridade)}</span>
                                     </div>
                                     <small class="text-muted">
                                         Solicitante: ${ticket.solicitante} | 
@@ -309,6 +379,11 @@
                                         <a href="/ticket-detalhes.html?id=${ticket.id}" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-eye"></i> Ver Detalhes
                                         </a>
+                                        ${payload.role === 'admin' ? `
+                                        <button class="btn btn-outline-danger btn-sm" onclick="abrirModalExcluir(${ticket.id}, '${ticket.titulo}')">
+                                            <i class="fas fa-trash"></i> Excluir
+                                        </button>
+                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -366,21 +441,21 @@
             // Funções auxiliares
             const getStatusColor = (status) => {
                 const colors = {
-                    'aberto': 'warning',
-                    'em_andamento': 'info',
-                    'resolvido': 'success',
-                    'fechado': 'secondary'
+                    'aberto': 'soft-primary',
+                    'em_andamento': 'soft-warning',
+                    'resolvido': 'soft-success',
+                    'fechado': 'soft-info'
                 };
-                return colors[status] || 'secondary';
+                return colors[status] || 'soft-info';
             };
 
             const getPrioridadeColor = (prioridade) => {
                 const colors = {
-                    'alta': 'danger',
-                    'media': 'warning',
-                    'baixa': 'success'
+                    'alta': 'soft-danger',
+                    'media': 'soft-warning',
+                    'baixa': 'soft-success'
                 };
-                return colors[prioridade] || 'secondary';
+                return colors[prioridade] || 'soft-info';
             };
 
             const formatStatus = (status) => {
@@ -557,8 +632,67 @@
                 }
             };
 
+            // Função para abrir modal de exclusão
+            window.abrirModalExcluir = (ticketId, titulo) => {
+                document.getElementById('modal-excluir-id').textContent = ticketId;
+                document.getElementById('modal-excluir-titulo').textContent = titulo;
+                document.getElementById('modal-excluir-permanente').checked = false;
+                
+                const modal = new bootstrap.Modal(document.getElementById('excluirModal'));
+                modal.show();
+            };
+
+            // Event listener para confirmar exclusão
+            document.getElementById('modal-excluir-confirmar').addEventListener('click', async () => {
+                const ticketId = document.getElementById('modal-excluir-id').textContent;
+                const excluirPermanente = document.getElementById('modal-excluir-permanente').checked;
+                
+                try {
+                    let url = `/api/v1/tickets/${ticketId}`;
+                    if (excluirPermanente) {
+                        url += '?force=true';
+                    }
+                    
+                    const response = await fetch(url, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('excluirModal'));
+                        modal.hide();
+                        
+                        showAlert(
+                            excluirPermanente 
+                                ? 'Ticket excluído permanentemente. Esta ação não pode ser desfeita.' 
+                                : 'Ticket excluído com sucesso. Você pode restaurá-lo na página de tickets excluídos.',
+                            excluirPermanente ? 'warning' : 'success'
+                        );
+                        
+                        // Recarregar lista de tickets
+                        fetchTickets(currentPage);
+                    } else {
+                        showAlert(data.error || 'Erro ao excluir ticket', 'danger');
+                    }
+                } catch (error) {
+                    console.error('Erro ao excluir ticket:', error);
+                    showAlert('Erro ao excluir ticket', 'danger');
+                }
+            });
+
             // Carregar dados iniciais
             fetchSetores();
+            adicionarBotaoExcluidos(); // Adicionar botão de excluídos apenas uma vez
             fetchTickets();
         });
     </script>

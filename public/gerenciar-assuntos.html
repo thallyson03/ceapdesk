@@ -373,14 +373,27 @@
                 `;
                 return;
             }
-            
-            container.innerHTML = assuntosToRender.map(assunto => `
+
+            container.innerHTML = assuntosToRender.map(assunto => {
+                // Alguns registros podem vir apenas com setorId (sem objeto setor).
+                // Garantimos um nome seguro de setor para evitar TypeError.
+                let setorNome = 'Sem setor';
+                if (assunto.setor && assunto.setor.nome) {
+                    setorNome = assunto.setor.nome;
+                } else if (typeof assunto.setorId !== 'undefined' && Array.isArray(setores)) {
+                    const setorEncontrado = setores.find(s => String(s.id) === String(assunto.setorId));
+                    if (setorEncontrado && setorEncontrado.nome) {
+                        setorNome = setorEncontrado.nome;
+                    }
+                }
+
+                return `
                 <div class="assunto-item">
                     <div class="assunto-info">
-                        <div class="assunto-nome">${assunto.nome}</div>
+                        <div class="assunto-nome">${assunto.nome || ''}</div>
                         ${assunto.descricao ? `<div class="assunto-descricao">${assunto.descricao}</div>` : ''}
                         <div class="assunto-setor">
-                            <i class="fas fa-building me-1"></i>${assunto.setor.nome}
+                            <i class="fas fa-building me-1"></i>${setorNome}
                         </div>
                     </div>
                     <div class="assunto-actions">
@@ -395,7 +408,8 @@
                         </button>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function filterAssuntos() {

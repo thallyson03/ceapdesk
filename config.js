@@ -10,7 +10,7 @@ function generateSecretKey() {
 
 // Validação de variáveis de ambiente obrigatórias
 function validateRequiredEnvVars() {
-    const required = ['SECRET_KEY'];
+    const required = ['SECRET_KEY']; 
     const missing = required.filter(key => !process.env[key]);
     
     if (missing.length > 0) {

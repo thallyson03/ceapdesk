@@ -7,7 +7,8 @@
     "dev": "nodemon server.js",
     "setup-db": "node scripts/setup-with-password.js",
     "sync-db": "node scripts/sync-database-fixed.js",
-    "fix-admin": "node scripts/fix-admin-user.js"
+    "fix-admin": "node scripts/fix-admin-user.js",
+    "add-deletedAt": "node scripts/add-deletedAt-column.js"
   },
   "keywords": ["tickets", "helpdesk", "sistema"],
   "author": "",

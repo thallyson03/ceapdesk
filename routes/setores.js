@@ -165,8 +165,9 @@ router.get('/:id/dependencies', authMiddleware, async (req, res) => {
             });
         }
         
-        // Verificar dependências
-        const { Ticket, UserSetor } = require('../models');
+        // Verificar dependências (Ticket, UserSetor, User). 
+        // O modelo Setor já foi importado no topo do arquivo para evitar problemas de escopo/TDZ.
+        const { Ticket, UserSetor, User } = require('../models');
         const ticketsCount = await Ticket.count({ where: { setor: setor.nome } });
         const usersCount = await UserSetor.count({ where: { setorId: id } });
         
@@ -178,12 +179,16 @@ router.get('/:id/dependencies', authMiddleware, async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
         
-        // Buscar detalhes dos usuários
-        const users = await UserSetor.findAll({
-            where: { setorId: id },
+        // Buscar detalhes dos usuários vinculados a este setor
+        // Atenção: não usamos include em UserSetor porque não existe associação direta
+        // UserSetor -> User registrada no Sequelize, o que causava o erro EagerLoadingError.
+        const users = await User.findAll({
+            attributes: ['id', 'username', 'email'],
             include: [{
-                model: require('../models').User,
-                attributes: ['id', 'username', 'email']
+                model: Setor,
+                as: 'setores',
+                attributes: [],
+                where: { id }
             }],
             limit: 10
         });
@@ -203,9 +208,9 @@ router.get('/:id/dependencies', authMiddleware, async (req, res) => {
                 users: {
                     count: usersCount,
                     samples: users.map(u => ({
-                        id: u.User.id,
-                        username: u.User.username,
-                        email: u.User.email
+                        id: u.id,
+                        username: u.username,
+                        email: u.email
                     }))
                 }
             },

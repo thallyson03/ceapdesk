@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const { Ticket, HistoricoTicket, Anotacao, User, SLA, Setor } = require('../models');
-const { authMiddleware } = require('../middleware/auth');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 const { Op } = require('sequelize');
 const notificationService = require('../services/notificationService');
 const SLAService = require('../services/slaService');
@@ -231,15 +231,55 @@ router.get('/setores-disponiveis', async (req, res) => {
 // Rota para obter todos os tickets com filtros de busca, status e paginação
 router.get('/', async (req, res) => {
     try {
-        const { search, status, startDate, endDate, page = 1, limit = 10 } = req.query;
-        const offset = (parseInt(page) - 1) * parseInt(limit);
+        const { search, status, startDate, endDate } = req.query;
+        let { page = 1, limit = 10 } = req.query;
+
+        // Garantir que page e limit sejam números válidos para evitar OFFSET NaN
+        let pageNumber = parseInt(page, 10);
+        let limitNumber = parseInt(limit, 10);
+
+        if (isNaN(pageNumber) || pageNumber < 1) {
+            pageNumber = 1;
+        }
+        if (isNaN(limitNumber) || limitNumber < 1) {
+            limitNumber = 10;
+        }
+
+        const offset = (pageNumber - 1) * limitNumber;
         let whereCondition = {};
         
         if (req.user.role !== 'admin') {
+            // Debug: verificar setores do usuário
+            console.log(`🔍 [DEBUG] Usuário: ${req.user.username}, Setores no token:`, req.user.setoresNomes);
+            
             // Filtrar por todos os setores do usuário
-            whereCondition.setor = {
-                [Op.in]: req.user.setoresNomes
-            };
+            // Se o usuário passar um filtro de setor específico, verificar se ele tem acesso
+            if (req.query.setor) {
+                // Verificar se o usuário tem acesso ao setor filtrado
+                if (req.user.setoresNomes && req.user.setoresNomes.includes(req.query.setor)) {
+                    whereCondition.setor = req.query.setor;
+                    console.log(`🔍 [DEBUG] Filtro de setor aplicado: ${req.query.setor}`);
+                } else {
+                    // Se não tiver acesso, retornar erro ou filtrar pelos setores permitidos
+                    console.warn(`⚠️ [DEBUG] Usuário ${req.user.username} tentou acessar setor ${req.query.setor} sem permissão. Setores permitidos:`, req.user.setoresNomes);
+                    return res.status(403).json({ 
+                        error: 'Você não tem acesso ao setor especificado.',
+                        allowedSetores: req.user.setoresNomes
+                    });
+                }
+            } else {
+                // Sem filtro de setor: mostrar tickets de TODOS os setores do usuário
+                const setoresParaFiltrar = req.user.setoresNomes || ['Geral'];
+                whereCondition.setor = {
+                    [Op.in]: setoresParaFiltrar
+                };
+                console.log(`🔍 [DEBUG] Filtro de múltiplos setores aplicado:`, setoresParaFiltrar);
+            }
+        } else {
+            // Admin: pode filtrar por setor se especificado
+            if (req.query.setor) {
+                whereCondition.setor = req.query.setor;
+            }
         }
 
         if (search) {
@@ -250,9 +290,6 @@ router.get('/', async (req, res) => {
         }
         if (status) {
             whereCondition.status = status;
-        }
-        if (req.query.setor) {
-            whereCondition.setor = req.query.setor;
         }
         if (req.query.prioridade) {
             whereCondition.prioridade = req.query.prioridade;
@@ -274,12 +311,12 @@ router.get('/', async (req, res) => {
         const { count, rows: tickets } = await Ticket.findAndCountAll({
             where: whereCondition,
             order: [['createdAt', 'DESC']],
-            limit: parseInt(limit),
-            offset: offset
+            limit: limitNumber,
+            offset
         });
 
-        const totalPages = Math.ceil(count / parseInt(limit));
-        const currentPage = parseInt(page);
+        const totalPages = Math.ceil(count / limitNumber);
+        const currentPage = pageNumber;
 
         // Atualizar status SLA para cada ticket
         for (let ticket of tickets) {
@@ -292,14 +329,19 @@ router.get('/', async (req, res) => {
                 total: count,
                 totalPages,
                 currentPage,
-                limit: parseInt(limit),
+                limit: limitNumber,
                 hasNext: currentPage < totalPages,
                 hasPrev: currentPage > 1
             }
         });
     } catch (error) {
         console.error('Erro ao buscar tickets:', error);
-        res.status(500).json({ error: 'Erro interno do servidor.' });
+        console.error('Detalhes do erro:', error.message);
+        console.error('Stack:', error.stack);
+        res.status(500).json({ 
+            error: 'Erro interno do servidor.',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
@@ -333,6 +375,125 @@ router.get('/sla/alertas', async (req, res) => {
     } catch (error) {
         console.error('Erro ao buscar tickets com SLA vencido:', error);
         res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para listar tickets excluídos (apenas admin) - DEVE VIR ANTES DE /:id
+router.get('/deleted', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { page = 1, limit = 10, search } = req.query;
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        
+        // Construir condição WHERE
+        let whereCondition = {
+            deletedAt: { [Op.ne]: null }
+        };
+        
+        // Busca por título ou descrição
+        if (search) {
+            whereCondition[Op.or] = [
+                { titulo: { [Op.like]: `%${search}%` } },
+                { descricao: { [Op.like]: `%${search}%` } }
+            ];
+        }
+        
+        let count = 0;
+        let tickets = [];
+        
+        try {
+            // Usar paranoid: false para incluir deletados
+            const result = await Ticket.findAndCountAll({
+                where: whereCondition,
+                paranoid: false, // Incluir deletados
+                order: [['deletedAt', 'DESC']],
+                limit: parseInt(limit),
+                offset: offset,
+                attributes: { exclude: [] } // Incluir todos os atributos
+            });
+            
+            count = result.count || 0;
+            tickets = result.rows || [];
+            
+        } catch (dbError) {
+            // Log detalhado do erro
+            console.error('❌ Erro na query de tickets excluídos:', dbError);
+            console.error('📝 Mensagem:', dbError.message);
+            console.error('📚 Nome:', dbError.name);
+            console.error('📚 Stack completo:', dbError.stack);
+            
+            // Verificar tipo de erro
+            const errorMessage = String(dbError.message || '').toLowerCase();
+            const errorName = String(dbError.name || '').toLowerCase();
+            const errorString = JSON.stringify(dbError).toLowerCase();
+            
+            // Se for erro relacionado ao banco ou coluna, retornar vazio
+            if (errorMessage.includes('deletedat') || 
+                errorMessage.includes('column') || 
+                errorMessage.includes('does not exist') ||
+                errorMessage.includes('não existe') ||
+                errorMessage.includes('unknown column') ||
+                errorName.includes('sequelizedatabaseerror') ||
+                errorName.includes('databaseerror') ||
+                errorString.includes('deletedat')) {
+                console.warn('⚠️  Erro relacionado ao banco de dados. Retornando array vazio.');
+                count = 0;
+                tickets = [];
+            } else {
+                // Re-lançar o erro para ser capturado pelo catch externo
+                throw dbError;
+            }
+        }
+        
+        const totalPages = Math.ceil(count / parseInt(limit)) || 0;
+        
+        res.status(200).json({
+            tickets: tickets || [],
+            pagination: {
+                total: count || 0,
+                totalPages: totalPages,
+                currentPage: parseInt(page) || 1,
+                limit: parseInt(limit) || 10,
+                hasNext: (parseInt(page) || 1) < totalPages,
+                hasPrev: (parseInt(page) || 1) > 1
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao buscar tickets excluídos:', error);
+        console.error('📝 Detalhes do erro:', error.message);
+        console.error('📚 Nome do erro:', error.name);
+        console.error('📚 Stack completo:', error.stack);
+        
+        // Verificar tipo de erro
+        const errorMessage = String(error.message || '').toLowerCase();
+        const errorName = String(error.name || '').toLowerCase();
+        
+        // Se for erro relacionado ao banco, retornar array vazio
+        if (errorMessage.includes('deletedat') || 
+            errorMessage.includes('column') || 
+            errorMessage.includes('does not exist') ||
+            errorMessage.includes('não existe') ||
+            errorMessage.includes('unknown column') ||
+            errorName.includes('sequelizedatabaseerror') ||
+            errorName.includes('databaseerror')) {
+            console.warn('⚠️  Retornando array vazio - erro relacionado ao banco de dados');
+            return res.status(200).json({
+                tickets: [],
+                pagination: {
+                    total: 0,
+                    totalPages: 0,
+                    currentPage: parseInt(req.query.page) || 1,
+                    limit: parseInt(req.query.limit) || 10,
+                    hasNext: false,
+                    hasPrev: false
+                }
+            });
+        }
+        
+        res.status(500).json({ 
+            error: 'Erro interno do servidor.',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 });
 
@@ -492,6 +653,131 @@ router.get('/:id/anotacoes', async (req, res) => {
         res.status(200).json(anotacoes);
     } catch (error) {
         console.error('Erro ao buscar anotações:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para excluir um ticket (apenas admin) - Soft Delete
+router.delete('/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { force } = req.query; // Opção para hard delete (se necessário)
+        
+        const ticket = await Ticket.findByPk(id);
+        
+        if (!ticket) {
+            return res.status(404).json({ error: 'Ticket não encontrado.' });
+        }
+        
+        // Verificar se já está deletado
+        if (ticket.deletedAt) {
+            return res.status(400).json({ 
+                error: 'Ticket já foi excluído.',
+                deletedAt: ticket.deletedAt
+            });
+        }
+        
+        // Soft delete (recomendado)
+        if (force !== 'true') {
+            // Registrar no histórico antes de deletar
+            await HistoricoTicket.create({
+                ticketId: ticket.id,
+                alteracao: `Ticket excluído por ${req.user.username}`,
+                usuario: req.user.username,
+                dataAlteracao: new Date()
+            });
+            
+            // Soft delete do Sequelize
+            await ticket.destroy();
+            
+            return res.status(200).json({ 
+                message: 'Ticket excluído com sucesso.',
+                ticketId: id,
+                deletedAt: new Date(),
+                canRestore: true
+            });
+        }
+        
+        // Hard delete (apenas se force=true)
+        // Primeiro registrar a exclusão
+        await HistoricoTicket.create({
+            ticketId: ticket.id,
+            alteracao: `Ticket excluído permanentemente por ${req.user.username}`,
+            usuario: req.user.username,
+            dataAlteracao: new Date()
+        });
+        
+        // Excluir anotações e histórico primeiro (cascade)
+        await Anotacao.destroy({ where: { ticketId: id }, force: true });
+        await HistoricoTicket.destroy({ where: { ticketId: id }, force: true });
+        
+        // Excluir ticket permanentemente
+        await ticket.destroy({ force: true });
+        
+        return res.status(200).json({ 
+            message: 'Ticket excluído permanentemente.',
+            ticketId: id,
+            warning: 'Esta ação não pode ser desfeita.'
+        });
+        
+    } catch (error) {
+        console.error('Erro ao excluir ticket:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para restaurar um ticket excluído (apenas admin)
+router.put('/:id/restore', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Buscar ticket deletado (incluindo soft deleted)
+        const ticket = await Ticket.findByPk(id, { 
+            paranoid: false // Incluir deletados
+        });
+        
+        if (!ticket) {
+            return res.status(404).json({ error: 'Ticket não encontrado.' });
+        }
+        
+        if (!ticket.deletedAt) {
+            return res.status(400).json({ error: 'Ticket não está excluído.' });
+        }
+        
+        // Restaurar ticket
+        await ticket.restore();
+        
+        // Registrar restauração no histórico
+        await HistoricoTicket.create({
+            ticketId: ticket.id,
+            alteracao: `Ticket restaurado por ${req.user.username}`,
+            usuario: req.user.username,
+            dataAlteracao: new Date()
+        });
+        
+        // Buscar ticket restaurado com relacionamentos
+        const ticketRestaurado = await Ticket.findByPk(id, {
+            include: [
+                {
+                    model: HistoricoTicket,
+                    as: 'historico',
+                    attributes: ['alteracao', 'usuario', 'dataAlteracao', 'createdAt']
+                },
+                {
+                    model: Anotacao,
+                    as: 'anotacoes',
+                    attributes: ['id', 'conteudo', 'autor', 'createdAt']
+                }
+            ]
+        });
+        
+        res.status(200).json({ 
+            message: 'Ticket restaurado com sucesso.',
+            ticket: ticketRestaurado
+        });
+        
+    } catch (error) {
+        console.error('Erro ao restaurar ticket:', error);
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });

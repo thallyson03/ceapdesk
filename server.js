@@ -62,7 +62,9 @@ app.use(helmet({
             scriptSrcElem: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
-            fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"]
+            fontSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            connectSrc: ["'self'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com"],
+            frameAncestors: ["'self'", "https://centralcrm.ceapebank.com.br", "https://*.ceapebank.com.br"]
         }
     },
     crossOriginEmbedderPolicy: false,
@@ -214,6 +216,9 @@ app.get('/change-password.html', (req, res) => {
 });
 app.get('/ticket-detalhes.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'ticket-detalhes.html'));
+});
+app.get('/tickets-excluidos.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'tickets-excluidos.html'));
 });
 app.get('/login.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));

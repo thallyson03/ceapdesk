@@ -595,6 +595,11 @@
                     </a>
                 </div>
                 <div class="nav-item">
+                    <a href="#integracao" class="nav-link" onclick="scrollToSection('integracao')">
+                        <i class="fas fa-plug me-2"></i>Integração Externa
+                    </a>
+                </div>
+                <div class="nav-item">
                     <a href="#auditoria" class="nav-link" onclick="scrollToSection('auditoria')">
                         <i class="fas fa-search me-2"></i>Auditoria
                     </a>
@@ -653,7 +658,7 @@
             
             <div class="feature-card">
                 <h4><i class="fas fa-user-minus me-2"></i>Gestão Avançada de Usuários</h4>
-                <p><strong>Versão:</strong> 1.1.0 | <strong>Data:</strong> Agosto 2025</p>
+                <p><strong>Versão:</strong> 1.2.0 | <strong>Data:</strong> Setembro 2025</p>
                 
                 <h5>Funcionalidades Implementadas:</h5>
                 <ul>
@@ -2192,6 +2197,18 @@ PGPASSWORD=ceape2025 psql -U sistema_user -d sistema_tickets -c "SELECT COUNT(*)
                     <li>HTTPS forçado em produção</li>
                     <li>CORS configurado</li>
                     <li>Rate limiting</li>
+                    <li><strong>Content Security Policy (CSP):</strong> frame-ancestors configurado para incorporação em iframe</li>
+                    <li><strong>X-Frame-Options:</strong> Removido para evitar conflitos com CSP</li>
+                </ul>
+            </div>
+            
+            <div class="security-config">
+                <h5>Integração com Sistemas Externos:</h5>
+                <ul>
+                    <li><strong>Incorporação em iframe:</strong> Permitida para domínios específicos</li>
+                    <li><strong>Domínios permitidos:</strong> centralcrm.ceapebank.com.br e subdomínios</li>
+                    <li><strong>Downloads em iframe:</strong> Suportados (sem sandbox restritivo)</li>
+                    <li><strong>Autenticação integrada:</strong> Suporte a SSO via postMessage</li>
                 </ul>
             </div>
 
@@ -2205,6 +2222,64 @@ PGPASSWORD=ceape2025 psql -U sistema_user -d sistema_tickets -c "SELECT COUNT(*)
                     <li><strong>BACKUP</strong> dados regularmente</li>
                     <li><strong>TESTE</strong> vulnerabilidades periodicamente</li>
                 </ul>
+            </div>
+        </div>
+
+        <!-- Integração Externa Section -->
+        <div class="section-card" id="integracao">
+            <h2><i class="fas fa-plug me-2"></i>Integração com Sistemas Externos</h2>
+            <p>Configurações e funcionalidades para integração do sistema com plataformas externas via iframe.</p>
+            
+            <h4>Incorporação em Iframe:</h4>
+            <div class="security-config">
+                <h5>Configuração CSP (Content Security Policy):</h5>
+                <ul>
+                    <li><strong>frame-ancestors:</strong> Permite incorporação em domínios específicos</li>
+                    <li><strong>Domínios permitidos:</strong> 'self', centralcrm.ceapebank.com.br, *.ceapebank.com.br</li>
+                    <li><strong>X-Frame-Options:</strong> Removido para evitar conflitos com CSP</li>
+                </ul>
+            </div>
+            
+            <h4>Autenticação Integrada (SSO):</h4>
+            <div class="security-config">
+                <h5>Implementação via postMessage:</h5>
+                <pre><code class="language-javascript">// No sistema incorporador (dkwsystem)
+const iframe = document.createElement('iframe');
+iframe.src = 'https://centralcrm.ceapebank.com.br';
+iframe.onload = () => {
+    iframe.contentWindow.postMessage({
+        type: 'AUTH_DATA',
+        token: currentUserToken,
+        user: currentUserData
+    }, 'https://centralcrm.ceapebank.com.br');
+};
+
+// No sistema incorporado (centralcrm)
+window.addEventListener('message', (event) => {
+    if (event.origin === 'https://dev.dkwsystem.com') {
+        if (event.data.type === 'AUTH_DATA') {
+            localStorage.setItem('authToken', event.data.token);
+            localStorage.setItem('user', JSON.stringify(event.data.user));
+            window.location.href = '/dashboard';
+        }
+    }
+});</code></pre>
+            </div>
+            
+            <h4>Resolução de Problemas:</h4>
+            <div class="error-solution">
+                <h5>Erro: "frame-ancestors 'none'"</h5>
+                <p><strong>Solução:</strong> Configurar CSP com frame-ancestors adequado</p>
+                <pre><code class="language-nginx">add_header Content-Security-Policy "... frame-ancestors 'self' https://centralcrm.ceapebank.com.br https://*.ceapebank.com.br;" always;</code></pre>
+            </div>
+            
+            <div class="error-solution">
+                <h5>Erro: "allow-downloads not set"</h5>
+                <p><strong>Solução:</strong> Remover X-Frame-Options ou adicionar allow-downloads ao sandbox</p>
+                <pre><code class="language-html">&lt;!-- Remover sandbox ou adicionar allow-downloads --&gt;
+&lt;iframe src="https://centralcrm.ceapebank.com.br/" 
+        sandbox="allow-scripts allow-same-origin allow-downloads"&gt;
+&lt;/iframe&gt;</code></pre>
             </div>
         </div>
 
@@ -2271,8 +2346,8 @@ ORDER BY data_alteracao DESC;
             <p>Esta documentação abrange todos os aspectos do Sistema de Tickets CEAPE, desde desenvolvimento até manutenção em produção.</p>
             <div class="mt-3">
                 <strong>URL da API:</strong> <code>https://centralcrm.ceapebank.com.br</code><br>
-                <strong>Versão:</strong> 1.0.0<br>
-                <strong>Última atualização:</strong> Agosto 2025<br>
+                <strong>Versão:</strong> 1.2.0<br>
+                <strong>Última atualização:</strong> Setembro 2025<br>
                 <strong>Ambiente de Produção:</strong> Oracle Cloud Free Tier<br>
                 <strong>Banco de Dados:</strong> PostgreSQL
             </div>

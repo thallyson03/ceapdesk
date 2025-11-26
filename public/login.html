@@ -10,22 +10,95 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        /* Fundo futurista inspirado na imagem, em tons de verde escuro */
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(to top, #0b2624 0%, #0f3b37 40%, #173f3a 70%, #1f514a 100%);
+            color: #fff;
         }
+
+        /* Colunas de quadrados “caindo” */
+        .matrix-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        .matrix-column {
+            position: absolute;
+            top: -400px;
+            width: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            animation: fall 10s linear infinite;
+            opacity: 0.95;
+        }
+
+        .matrix-square {
+            width: 9px;
+            height: 9px;
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(190, 255, 220, 0.95);
+            border: 1px solid rgba(190, 255, 220, 0.95);
+            background: rgba(10, 40, 28, 0.6);
+        }
+
+        .matrix-square.filled {
+            background: rgba(140, 240, 190, 1);
+        }
+
+        .matrix-square.spark {
+            width: 11px;
+            height: 11px;
+            box-shadow: 0 0 14px rgba(240, 255, 245, 1);
+            border-color: rgba(240, 255, 245, 1);
+        }
+
+        .matrix-column.col-1  { left: 1%;   animation-duration: 10.5s;animation-delay: -2s; }
+        .matrix-column.col-2  { left: 7%;   animation-duration: 12s;  animation-delay: -4s; }
+        .matrix-column.col-3  { left: 13%;  animation-duration: 9.8s; animation-delay: -6s; }
+        .matrix-column.col-4  { left: 19%;  animation-duration: 13s;  animation-delay: -1s; }
+        .matrix-column.col-5  { left: 25%;  animation-duration: 11s;  animation-delay: -5s; }
+        .matrix-column.col-6  { left: 31%;  animation-duration: 14.5s;animation-delay: -3s; }
+        .matrix-column.col-7  { left: 37%;  animation-duration: 10.8s;animation-delay: -7s; }
+        .matrix-column.col-8  { left: 43%;  animation-duration: 12.8s;animation-delay: -2.5s; }
+        .matrix-column.col-9  { left: 49%;  animation-duration: 11.5s;animation-delay: -4.5s; }
+        .matrix-column.col-10 { left: 55%;  animation-duration: 15s;  animation-delay: -6.5s; }
+        .matrix-column.col-11 { left: 63%;  animation-duration: 13.5s;animation-delay: -1.5s; }
+        .matrix-column.col-12 { left: 71%;  animation-duration: 14.5s;animation-delay: -5.5s; }
+        .matrix-column.col-13 { left: 79%;  animation-duration: 11.2s;animation-delay: -3.5s; }
+        .matrix-column.col-14 { left: 87%;  animation-duration: 16s;  animation-delay: -6.2s; }
+        .matrix-column.col-15 { left: 94%;  animation-duration: 13.8s;animation-delay: -4.8s; }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-100%);
+            }
+            100% {
+                transform: translateY(120%);
+            }
+        }
+
         .login-container {
             max-width: 450px;
             width: 100%;
             padding: 3rem;
             background-color: #fff;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            box-shadow: 0 24px 70px rgba(0,0,0,0.45);
             position: relative;
             overflow: hidden;
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.92);
         }
         .login-container::before {
             content: '';
@@ -34,11 +107,19 @@
             left: 0;
             right: 0;
             height: 5px;
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            background: linear-gradient(135deg, #8FC4B8 0%, #B8D9D0 100%);
         }
         .login-header {
             text-align: center;
             margin-bottom: 2rem;
+        }
+        .login-logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 1.5rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
         .login-header h2 {
             color: #333;
@@ -65,16 +146,18 @@
             margin-bottom: 0.5rem;
         }
         .btn-login {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #17a589 0%, #1abc9c 50%, #27ae60 100%);
             border: none;
             border-radius: 10px;
             padding: 0.75rem 2rem;
             font-weight: 600;
             transition: all 0.3s ease;
+            box-shadow: 0 6px 18px rgba(23, 165, 137, 0.45);
         }
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 28px rgba(39, 174, 96, 0.55);
+            filter: brightness(1.03);
         }
         .btn-forgot {
             background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
@@ -148,10 +231,207 @@
     </style>
 </head>
 <body>
+    <!-- Fundo de quadrados caindo em tom verde escuro -->
+    <div class="matrix-bg">
+        <div class="matrix-column col-1">
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+        </div>
+        <div class="matrix-column col-2">
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-3">
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-4">
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-5">
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+        </div>
+        <div class="matrix-column col-6">
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-7">
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-8">
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-9">
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-10">
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+        </div>
+        <div class="matrix-column col-11">
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+        </div>
+        <div class="matrix-column col-12">
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square spark"></div>
+            <div class="matrix-square"></div>
+            <div class="matrix-square filled"></div>
+            <div class="matrix-square"></div>
+        </div>
+    </div>
+
     <div class="login-container">
         <div class="login-header">
-            <div class="mb-3">
-                <i class="fas fa-ticket-alt fa-3x text-primary"></i>
+            <img src="/images/ceape-logo.png" alt="CEAPE Logo" class="login-logo" id="ceape-logo" onerror="this.style.display='none'; document.getElementById('fallback-icon').style.display='block';">
+            <div class="mb-3" id="fallback-icon" style="display: none;">
+                <i class="fas fa-ticket-alt fa-3x" style="color: #7FA8D4;"></i>
             </div>
             <h2>Sistema de Tickets</h2>
             <p>Faça login para acessar o sistema</p>

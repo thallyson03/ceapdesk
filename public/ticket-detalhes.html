@@ -11,12 +11,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         .ticket-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0f6d55 0%, #149070 50%, #1bb089 100%);
             color: white;
             border-radius: 15px;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18);
         }
         .detail-card {
             border-radius: 15px;
@@ -31,6 +31,10 @@
             font-weight: 600;
             border-bottom: none;
             padding: 1.25rem 1.5rem;
+        }
+        .detail-card .card-header.card-header-green {
+            background: linear-gradient(135deg, #0f6d55 0%, #149070 50%, #1bb089 100%);
+            color: #ffffff;
         }
         .detail-card .card-body {
             padding: 1.5rem;
@@ -673,7 +677,7 @@
                 <div class="col-lg-6">
                     <!-- Card de detalhes compacto -->
                     <div class="card detail-card compact-card">
-                        <div class="card-header bg-primary text-white py-2">
+                        <div class="card-header card-header-green py-2">
                             <h6 class="mb-0">
                                 <i class="fas fa-ticket-alt me-2"></i>Detalhes do Ticket
                             </h6>
@@ -728,7 +732,7 @@
 
                     <!-- Formulário de atualização compacto -->
                     <div class="card detail-card compact-card" id="form-update">
-                        <div class="card-header bg-success text-white py-2">
+                        <div class="card-header card-header-green py-2">
                             <h6 class="mb-0">
                                 <i class="fas fa-edit me-2"></i>Atualizar Ticket
                             </h6>
@@ -772,7 +776,7 @@
                 <div class="col-lg-6">
                     <!-- Card de SLA compacto -->
                     <div class="card detail-card compact-card">
-                        <div class="card-header bg-warning text-dark py-2">
+                        <div class="card-header card-header-green py-2">
                             <h6 class="mb-0">
                                 <i class="fas fa-clock me-2"></i>SLA
                             </h6>
@@ -789,7 +793,7 @@
 
                     <!-- Anotações compactas -->
                     <div class="card detail-card compact-card">
-                        <div class="card-header bg-info text-white py-2">
+                        <div class="card-header card-header-green py-2">
                             <h6 class="mb-0">
                                 <i class="fas fa-comments me-2"></i>Anotações
                             </h6>
@@ -808,7 +812,7 @@
 
                     <!-- Histórico compacto -->
                     <div class="card detail-card compact-card">
-                        <div class="card-header bg-secondary text-white py-2">
+                        <div class="card-header card-header-green py-2">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0">
                                     <i class="fas fa-history me-2"></i>Histórico

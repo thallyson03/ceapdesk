@@ -302,10 +302,29 @@ router.post('/register', authMiddleware, adminMiddleware, registerValidations, a
             role: role || 'user' 
         });
         
-        // Adicionar setores adicionais se fornecidos
+        // Montar lista de IDs de setores a partir do setor principal (nome) + setores adicionais (IDs)
+        let allSetorIds = [];
+
+        // 1) Setor principal vem como nome (string). Converter para ID.
+        if (setor && typeof setor === 'string') {
+            const setorPrincipal = await Setor.findOne({ where: { nome: setor } });
+            if (setorPrincipal) {
+                allSetorIds.push(setorPrincipal.id);
+            }
+        }
+
+        // 2) Setores adicionais já vêm como IDs (array)
         if (setorIds && Array.isArray(setorIds) && setorIds.length > 0) {
+            allSetorIds.push(...setorIds.map(id => parseInt(id, 10)).filter(id => !isNaN(id)));
+        }
+
+        // Remover duplicados
+        allSetorIds = [...new Set(allSetorIds)];
+
+        // 3) Criar relações UserSetor se houver pelo menos um setor válido
+        if (allSetorIds.length > 0) {
             const setores = await Setor.findAll({
-                where: { id: setorIds }
+                where: { id: allSetorIds }
             });
             
             if (setores.length > 0) {
@@ -451,7 +470,7 @@ router.post('/reset-password', async (req, res) => {
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
     try {
         const userId = req.params.id;
-        const { username, role, setorIds } = req.body;
+        const { username, role, setorIds, password } = req.body;
 
         const user = await User.findByPk(userId);
         if (!user) {
@@ -475,6 +494,26 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
 
         if (role) {
             user.role = role;
+        }
+
+        // Atualizar senha se fornecida
+        if (password && password.trim() !== '') {
+            // Validar comprimento mínimo da senha
+            if (password.length < config.MIN_PASSWORD_LENGTH) {
+                return res.status(400).json({ 
+                    error: `A senha deve ter pelo menos ${config.MIN_PASSWORD_LENGTH} caracteres.` 
+                });
+            }
+            
+            // Validar complexidade se necessário
+            if (config.REQUIRE_PASSWORD_COMPLEXITY && !validatePasswordComplexity(password)) {
+                return res.status(400).json({ 
+                    error: 'Senha deve conter maiúsculas, minúsculas, números e caracteres especiais.' 
+                });
+            }
+            
+            // Atribuir a senha - o hook beforeUpdate fará o hash automaticamente
+            user.password = password;
         }
 
         await user.save();

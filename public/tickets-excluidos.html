@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tickets Excluídos</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .ticket-card {
+            border-left: 4px solid #E8C4C4;
+            margin-bottom: 1rem;
+            background: #FFFFFF;
+            transition: all 0.3s ease;
+        }
+        .ticket-card:hover {
+            background: #F8F9FA;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .ticket-card.deleted {
+            background-color: #F8F9FA;
+            opacity: 0.95;
+        }
+        .status-badge {
+            font-size: 0.8em;
+        }
+        .deleted-badge {
+            background-color: #E8C4C4;
+            color: #A87070;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="/gerenciar-tickets.html" class="btn" style="background-color: #E8E8E8; color: #5A5A5A; border-color: #D0D0D0;">← Voltar para Gerenciar Tickets</a>
+            <div class="d-flex align-items-center gap-2">
+                <span id="user-info" class="me-2 fw-bold"></span>
+                <button id="logout-btn" class="btn btn-danger">Sair</button>
+            </div>
+        </div>
+        
+        <h1 class="mb-4">
+            <i class="fas fa-trash"></i> Tickets Excluídos
+        </h1>
+        
+        <!-- Filtros -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label for="busca" class="form-label">Buscar</label>
+                <input type="text" id="busca" class="form-control" placeholder="Título ou descrição...">
+            </div>
+            <div class="col-md-3">
+                <label for="filtro-setor" class="form-label">Filtrar por Setor</label>
+                <select id="filtro-setor" class="form-select">
+                    <option value="">Todos os setores</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button id="btn-buscar" class="btn btn-primary w-100">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+        </div>
+        
+        <!-- Estatísticas -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title" id="total-excluidos" style="color: #A87070;">0</h5>
+                        <p class="card-text">Total de Tickets Excluídos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Lista de Tickets Excluídos -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Tickets Excluídos</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="tickets-container">
+                            <div class="text-center">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Paginação -->
+                        <nav aria-label="Navegação de tickets" class="mt-4">
+                            <ul class="pagination justify-content-center" id="pagination">
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para restaurar ticket -->
+    <div class="modal fade" id="restaurarModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background: linear-gradient(135deg, #8FC4B8 0%, #7FB3A8 100%);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-undo"></i> Restaurar Ticket
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> Você está prestes a restaurar um ticket excluído.
+                    </p>
+                    <p><strong>Ticket:</strong> <span id="modal-restaurar-titulo"></span></p>
+                    <p><strong>ID:</strong> <span id="modal-restaurar-id"></span></p>
+                    <p><strong>Excluído em:</strong> <span id="modal-restaurar-data"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" style="background-color: #E8E8E8; color: #5A5A5A; border-color: #D0D0D0;" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-success" id="modal-restaurar-confirmar">
+                        <i class="fas fa-undo"></i> Restaurar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            const userInfo = document.getElementById('user-info');
+            const logoutBtn = document.getElementById('logout-btn');
+            const ticketsContainer = document.getElementById('tickets-container');
+            const pagination = document.getElementById('pagination');
+            
+            let currentPage = 1;
+            let totalPages = 1;
+            let tickets = [];
+            let currentTicket = null;
+
+            const parseJwt = (token) => {
+                try {
+                    return JSON.parse(atob(token.split('.')[1]));
+                } catch (e) {
+                    return null;
+                }
+            };
+            
+            const payload = parseJwt(token);
+            if (payload) {
+                if (payload.role !== 'admin') {
+                    alert('Acesso negado. Apenas administradores podem acessar esta página.');
+                    window.location.href = '/dashboard.html';
+                    return;
+                }
+                userInfo.innerHTML = `<i class="fas fa-user me-1"></i>Olá, ${payload.username}!`;
+            } else {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+                return;
+            }
+
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            });
+
+            // Função para buscar tickets excluídos
+            const fetchTicketsExcluidos = async (page = 1) => {
+                try {
+                    const params = new URLSearchParams({
+                        page: page,
+                        limit: 10
+                    });
+
+                    const busca = document.getElementById('busca').value;
+                    if (busca) params.append('search', busca);
+
+                    const response = await fetch(`/api/v1/tickets/deleted?${params}`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+
+                    if (response.status === 403) {
+                        alert('Acesso negado. Apenas administradores podem acessar esta página.');
+                        window.location.href = '/dashboard.html';
+                        return;
+                    }
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: 'Erro desconhecido' }));
+                        throw new Error(errorData.error || `Erro ${response.status}: ${response.statusText}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    tickets = data.tickets || [];
+                    currentPage = data.pagination?.currentPage || 1;
+                    totalPages = data.pagination?.totalPages || 1;
+
+                    renderTickets();
+                    renderPagination();
+                    updateStats();
+                } catch (error) {
+                    console.error('Erro ao buscar tickets excluídos:', error);
+                    showAlert(error.message || 'Erro ao carregar tickets excluídos', 'danger');
+                    ticketsContainer.innerHTML = '<div class="text-center text-danger">Erro ao carregar tickets excluídos. Verifique o console para mais detalhes.</div>';
+                }
+            };
+
+            // Função para renderizar tickets
+            const renderTickets = () => {
+                if (tickets.length === 0) {
+                    ticketsContainer.innerHTML = '<div class="text-center text-muted">Nenhum ticket excluído encontrado</div>';
+                    return;
+                }
+
+                ticketsContainer.innerHTML = tickets.map(ticket => `
+                    <div class="card ticket-card deleted">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h6 class="card-title">${ticket.titulo}</h6>
+                                    <p class="card-text text-muted">${ticket.descricao ? ticket.descricao.substring(0, 100) + (ticket.descricao.length > 100 ? '...' : '') : 'Sem descrição'}</p>
+                                    <div class="d-flex gap-2 mb-2">
+                                        <span class="badge badge-soft-info status-badge">${ticket.setor}</span>
+                                        <span class="badge badge-${getStatusColor(ticket.status)} status-badge">${formatStatus(ticket.status)}</span>
+                                        <span class="deleted-badge">
+                                            <i class="fas fa-trash"></i> Excluído em ${new Date(ticket.deletedAt).toLocaleString('pt-BR')}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">
+                                        Solicitante: ${ticket.solicitante} | 
+                                        Criado: ${new Date(ticket.createdAt).toLocaleDateString('pt-BR')}
+                                    </small>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <div class="mb-2">
+                                        <strong>Responsável:</strong><br>
+                                        <span class="text-muted">${ticket.responsavel || 'Não atribuído'}</span>
+                                    </div>
+                                    <div class="btn-group-vertical">
+                                        <button class="btn btn-soft-success btn-sm" onclick="abrirModalRestaurar(${ticket.id}, '${ticket.titulo}', '${ticket.deletedAt}')">
+                                            <i class="fas fa-undo"></i> Restaurar
+                                        </button>
+                                        <a href="/ticket-detalhes.html?id=${ticket.id}" class="btn btn-sm" style="background-color: #C4D6E8; color: #6B8BA8; border-color: #9BB5D1;">
+                                            <i class="fas fa-eye"></i> Ver Detalhes
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            // Função para renderizar paginação
+            const renderPagination = () => {
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+
+                let paginationHTML = '';
+                
+                if (currentPage > 1) {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Anterior</a></li>`;
+                }
+
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPage) {
+                        paginationHTML += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+                    } else {
+                        paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+                    }
+                }
+
+                if (currentPage < totalPages) {
+                    paginationHTML += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Próximo</a></li>`;
+                }
+
+                pagination.innerHTML = paginationHTML;
+            };
+
+            window.changePage = (page) => {
+                currentPage = page;
+                fetchTicketsExcluidos(page);
+            };
+
+            const updateStats = () => {
+                document.getElementById('total-excluidos').textContent = tickets.length;
+            };
+
+            const getStatusColor = (status) => {
+                const colors = {
+                    'aberto': 'soft-primary',
+                    'em_andamento': 'soft-warning',
+                    'resolvido': 'soft-success',
+                    'fechado': 'soft-info'
+                };
+                return colors[status] || 'soft-info';
+            };
+
+            const formatStatus = (status) => {
+                const labels = {
+                    'aberto': 'Aberto',
+                    'em_andamento': 'Em Andamento',
+                    'resolvido': 'Resolvido',
+                    'fechado': 'Fechado'
+                };
+                return labels[status] || status;
+            };
+
+            const showAlert = (message, type) => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.querySelector('.container-fluid').insertBefore(alertDiv, document.querySelector('.container-fluid').firstChild);
+                
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            };
+
+            // Função para abrir modal de restauração
+            window.abrirModalRestaurar = (ticketId, titulo, deletedAt) => {
+                document.getElementById('modal-restaurar-id').textContent = ticketId;
+                document.getElementById('modal-restaurar-titulo').textContent = titulo;
+                document.getElementById('modal-restaurar-data').textContent = new Date(deletedAt).toLocaleString('pt-BR');
+                
+                const modal = new bootstrap.Modal(document.getElementById('restaurarModal'));
+                modal.show();
+            };
+
+            // Event listener para confirmar restauração
+            document.getElementById('modal-restaurar-confirmar').addEventListener('click', async () => {
+                const ticketId = document.getElementById('modal-restaurar-id').textContent;
+                
+                try {
+                    const response = await fetch(`/api/v1/tickets/${ticketId}/restore`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/login.html';
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('restaurarModal'));
+                        modal.hide();
+                        
+                        showAlert('Ticket restaurado com sucesso!', 'success');
+                        
+                        // Recarregar lista de tickets
+                        fetchTicketsExcluidos(currentPage);
+                    } else {
+                        showAlert(data.error || 'Erro ao restaurar ticket', 'danger');
+                    }
+                } catch (error) {
+                    console.error('Erro ao restaurar ticket:', error);
+                    showAlert('Erro ao restaurar ticket', 'danger');
+                }
+            });
+
+            // Event listener para busca
+            document.getElementById('btn-buscar').addEventListener('click', () => {
+                fetchTicketsExcluidos(1);
+            });
+
+            document.getElementById('busca').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    fetchTicketsExcluidos(1);
+                }
+            });
+
+            // Carregar dados iniciais
+            fetchTicketsExcluidos();
+        });
+    </script>
+</body>
+</html>
+

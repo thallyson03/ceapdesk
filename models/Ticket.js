@@ -68,6 +68,9 @@ module.exports = (sequelize) => {
             allowNull: false,
             defaultValue: 'dentro_prazo'
         }
+    }, {
+        paranoid: true, // Habilita soft delete - adiciona campo deletedAt automaticamente
+        deletedAt: 'deletedAt' // Nome do campo de soft delete
     });
 
     Ticket.associate = (models) => {

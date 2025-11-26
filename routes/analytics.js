@@ -155,13 +155,22 @@ router.get('/setores', async (req, res) => {
 router.get('/dashboard-completo', async (req, res) => {
     try {
         const { periodo = '30', setor, usuario } = req.query; // dias, setor, usuario
-        const dataInicio = new Date();
-        dataInicio.setDate(dataInicio.getDate() - parseInt(periodo));
+
+        // Se periodo = 'all', não filtra por data (usa todo o histórico)
+        let dataInicio = null;
+        if (periodo !== 'all') {
+            const dias = parseInt(periodo, 10);
+            if (!isNaN(dias) && dias > 0) {
+                dataInicio = new Date();
+                dataInicio.setDate(dataInicio.getDate() - dias);
+            }
+        }
 
         // Construir condições de filtro
-        const whereConditions = {
-            createdAt: { [Op.gte]: dataInicio }
-        };
+        const whereConditions = {};
+        if (dataInicio) {
+            whereConditions.createdAt = { [Op.gte]: dataInicio };
+        }
 
         if (setor && setor !== '') {
             whereConditions.setor = setor;
@@ -246,9 +255,11 @@ router.get('/dashboard-completo', async (req, res) => {
 
         // 6. Top assuntos por setor
         const whereAssuntos = {
-            assuntoId: { [Op.ne]: null },
-            createdAt: { [Op.gte]: dataInicio }
+            assuntoId: { [Op.ne]: null }
         };
+        if (dataInicio) {
+            whereAssuntos.createdAt = { [Op.gte]: dataInicio };
+        }
         if (setor && setor !== '') whereAssuntos.setor = setor;
         if (usuario && usuario !== '') whereAssuntos.responsavel = usuario;
 
@@ -307,13 +318,21 @@ router.get('/dashboard-completo', async (req, res) => {
 router.get('/performance-setores', async (req, res) => {
     try {
         const { periodo = '30', setor, usuario } = req.query;
-        const dataInicio = new Date();
-        dataInicio.setDate(dataInicio.getDate() - parseInt(periodo));
+
+        let dataInicio = null;
+        if (periodo !== 'all') {
+            const dias = parseInt(periodo, 10);
+            if (!isNaN(dias) && dias > 0) {
+                dataInicio = new Date();
+                dataInicio.setDate(dataInicio.getDate() - dias);
+            }
+        }
 
         // Construir condições de filtro
-        const whereConditions = {
-            createdAt: { [Op.gte]: dataInicio }
-        };
+        const whereConditions = {};
+        if (dataInicio) {
+            whereConditions.createdAt = { [Op.gte]: dataInicio };
+        }
 
         if (setor && setor !== '') {
             whereConditions.setor = setor;
@@ -366,14 +385,23 @@ router.get('/performance-setores', async (req, res) => {
 router.get('/usuarios-performance', async (req, res) => {
     try {
         const { periodo = '30', setor, usuario } = req.query;
-        const dataInicio = new Date();
-        dataInicio.setDate(dataInicio.getDate() - parseInt(periodo));
+
+        let dataInicio = null;
+        if (periodo !== 'all') {
+            const dias = parseInt(periodo, 10);
+            if (!isNaN(dias) && dias > 0) {
+                dataInicio = new Date();
+                dataInicio.setDate(dataInicio.getDate() - dias);
+            }
+        }
 
         // Construir condições de filtro
         const whereConditions = {
-            responsavel: { [Op.ne]: null },
-            createdAt: { [Op.gte]: dataInicio }
+            responsavel: { [Op.ne]: null }
         };
+        if (dataInicio) {
+            whereConditions.createdAt = { [Op.gte]: dataInicio };
+        }
 
         if (setor && setor !== '') {
             whereConditions.setor = setor;

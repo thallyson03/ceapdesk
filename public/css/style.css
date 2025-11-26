@@ -1,28 +1,208 @@
-body {
-    background-color: #f8f9fa;
+/* ============================================
+   ESQUEMA DE CORES SUAVE E CALMO
+   ============================================ */
+
+:root {
+    /* Cores Principais Suaves */
+    --primary-soft: #7FA8D4;        /* Azul suave */
+    --primary-light: #A8C5E6;       /* Azul muito claro */
+    --primary-dark: #5B8BB8;        /* Azul mais escuro (mas suave) */
+    
+    --success-soft: #8FC4B8;        /* Verde suave */
+    --success-light: #B8D9D0;       /* Verde muito claro */
+    
+    --warning-soft: #E8D5A3;        /* Amarelo suave */
+    --warning-light: #F2E6C7;       /* Amarelo muito claro */
+    
+    --danger-soft: #D4A5A5;         /* Vermelho suave */
+    --danger-light: #E8C4C4;       /* Vermelho muito claro */
+    
+    --info-soft: #9BB5D1;           /* Azul info suave */
+    --info-light: #C4D6E8;          /* Azul info claro */
+    
+    /* Cores Neutras Suaves */
+    --gray-soft: #E8E8E8;           /* Cinza muito suave */
+    --gray-light: #F5F5F5;          /* Cinza claro */
+    --gray-medium: #D0D0D0;         /* Cinza médio */
+    --text-soft: #5A5A5A;           /* Texto suave */
+    --text-light: #8A8A8A;          /* Texto claro */
+    
+    /* Backgrounds */
+    --bg-soft: #F8F9FA;             /* Background principal */
+    --bg-card: #FFFFFF;             /* Background de cards */
+    --bg-hover: #F0F4F8;            /* Background hover */
+    
+    /* Bordas e Sombras Suaves */
+    --border-soft: #E0E0E0;
+    --shadow-soft: rgba(0, 0, 0, 0.06);
+    --shadow-medium: rgba(0, 0, 0, 0.08);
 }
+
+body {
+    background-color: var(--bg-soft);
+    color: var(--text-soft);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
 .container {
     max-width: 900px;
 }
+
 .card {
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px var(--shadow-soft);
+    border: 1px solid var(--border-soft);
+    background-color: var(--bg-card);
+    transition: all 0.3s ease;
 }
+
+.card:hover {
+    box-shadow: 0 4px 12px var(--shadow-medium);
+    transform: translateY(-2px);
+}
+
 .ticket-table {
     border-radius: 10px;
     overflow: hidden;
 }
+
+/* Status com cores suaves */
 .status-aberto {
-    color: #0d6efd;
-    font-weight: bold;
+    color: var(--primary-soft);
+    font-weight: 500;
 }
+
 .status-em-andamento {
-    color: #ffc107;
-    font-weight: bold;
+    color: var(--warning-soft);
+    font-weight: 500;
 }
+
 .status-fechado {
-    color: #198754;
-    font-weight: bold;
+    color: var(--success-soft);
+    font-weight: 500;
+}
+
+/* Badges Suaves */
+.badge-soft-primary {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 500;
+}
+
+.badge-soft-success {
+    background-color: var(--success-light);
+    color: #4A8A7A;
+    font-weight: 500;
+}
+
+.badge-soft-warning {
+    background-color: var(--warning-light);
+    color: #B89A5A;
+    font-weight: 500;
+}
+
+.badge-soft-danger {
+    background-color: var(--danger-light);
+    color: #A87070;
+    font-weight: 500;
+}
+
+.badge-soft-info {
+    background-color: var(--info-light);
+    color: #6B8BA8;
+    font-weight: 500;
+}
+
+/* Botões Suaves */
+.btn-soft-primary {
+    background-color: var(--primary-soft);
+    border-color: var(--primary-soft);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-soft-primary:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px var(--shadow-soft);
+}
+
+.btn-soft-success {
+    background-color: var(--success-soft);
+    border-color: var(--success-soft);
+    color: white;
+}
+
+.btn-soft-success:hover {
+    background-color: #7FB3A8;
+    border-color: #7FB3A8;
+}
+
+.btn-soft-danger {
+    background-color: var(--danger-soft);
+    border-color: var(--danger-soft);
+    color: white;
+}
+
+.btn-soft-danger:hover {
+    background-color: #C49595;
+    border-color: #C49595;
+}
+
+/* Navbar Suave */
+.navbar-soft {
+    background: linear-gradient(135deg, var(--primary-soft) 0%, var(--primary-dark) 100%);
+    box-shadow: 0 2px 8px var(--shadow-soft);
+}
+
+/* Cards de Tickets Suaves */
+.ticket-card-soft {
+    background: var(--bg-card);
+    border-left: 4px solid var(--primary-light);
+    transition: all 0.3s ease;
+}
+
+.ticket-card-soft:hover {
+    background: var(--bg-hover);
+    border-left-color: var(--primary-soft);
+}
+
+.ticket-card-soft.alta {
+    border-left-color: var(--danger-light);
+}
+
+.ticket-card-soft.media {
+    border-left-color: var(--warning-light);
+}
+
+.ticket-card-soft.baixa {
+    border-left-color: var(--success-light);
+}
+
+/* Alerts Suaves */
+.alert-soft-primary {
+    background-color: var(--primary-light);
+    border-color: var(--primary-soft);
+    color: var(--primary-dark);
+}
+
+.alert-soft-success {
+    background-color: var(--success-light);
+    border-color: var(--success-soft);
+    color: #4A8A7A;
+}
+
+.alert-soft-warning {
+    background-color: var(--warning-light);
+    border-color: var(--warning-soft);
+    color: #B89A5A;
+}
+
+.alert-soft-danger {
+    background-color: var(--danger-light);
+    border-color: var(--danger-soft);
+    color: #A87070;
 }
 
 /* Estilos para submenu de administração */
