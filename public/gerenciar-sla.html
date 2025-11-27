@@ -205,20 +205,22 @@
         <!-- Formulário de configuração -->
         <div class="card form-card">
             <div class="card-header bg-white border-0">
-                <h5 class="mb-0 text-primary">
+                <h5 class="mb-0 text-primary" id="formTitle">
                     <i class="fas fa-cog me-2"></i>Configurar SLA para Setor
                 </h5>
             </div>
             <div class="card-body">
                 <form id="slaForm">
+                    <input type="hidden" id="slaIdEdit" value="">
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label for="setorSelect" class="form-label">
                                 <i class="fas fa-building me-1"></i>Setor
                             </label>
-                            <select id="setorSelect" class="form-select" required>
+                            <select id="setorSelect" class="form-select" required disabled>
                                 <option value="">Selecione um setor</option>
                             </select>
+                            <small class="text-muted" id="setorEditInfo" style="display: none;">O setor não pode ser alterado durante a edição</small>
                         </div>
                         <div class="col-md-3">
                             <label for="diasSLA" class="form-label">
@@ -233,8 +235,18 @@
                             <input type="text" id="descricaoSLA" class="form-control" placeholder="Ex: SLA padrão para tickets">
                         </div>
                         <div class="col-md-1 d-flex align-items-end justify-content-center">
-                            <button type="submit" class="btn btn-primary btn-sm">
+                            <button type="submit" class="btn btn-primary btn-sm" id="submitBtn">
                                 <i class="fas fa-save me-1"></i>Salvar
+                            </button>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2" id="editButtonsRow" style="display: none;">
+                        <div class="col-12 d-flex justify-content-center gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm" id="submitBtnEdit">
+                                <i class="fas fa-save me-1"></i>Atualizar
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" id="cancelBtn">
+                                <i class="fas fa-times me-1"></i>Cancelar
                             </button>
                         </div>
                     </div>
@@ -412,6 +424,7 @@
         async function saveSLA(event) {
             event.preventDefault();
             
+            const slaIdEdit = document.getElementById('slaIdEdit').value;
             const setorId = document.getElementById('setorSelect').value;
             const diasSLA = document.getElementById('diasSLA').value;
             const descricao = document.getElementById('descricaoSLA').value;
@@ -422,23 +435,40 @@
             }
             
             try {
-                const response = await fetch('/api/v1/sla', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        setorId: parseInt(setorId),
-                        diasSLA: parseInt(diasSLA),
-                        descricao
-                    })
-                });
+                let response;
+                
+                // Se estiver em modo de edição, fazer PUT
+                if (slaIdEdit) {
+                    response = await fetch(`/api/v1/sla/${slaIdEdit}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            diasSLA: parseInt(diasSLA),
+                            descricao: descricao || null
+                        })
+                    });
+                } else {
+                    // Caso contrário, criar novo SLA (POST)
+                    response = await fetch('/api/v1/sla', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            setorId: parseInt(setorId),
+                            diasSLA: parseInt(diasSLA),
+                            descricao
+                        })
+                    });
+                }
                 
                 if (response.ok) {
-                    showAlert('SLA configurado com sucesso!', 'success');
-                    document.getElementById('slaForm').reset();
-                    document.getElementById('diasSLA').value = '3';
+                    showAlert(slaIdEdit ? 'SLA atualizado com sucesso!' : 'SLA configurado com sucesso!', 'success');
+                    cancelEdit(); // Limpar formulário e sair do modo de edição
                     loadSLAs();
                 } else {
                     const error = await response.json();
@@ -452,8 +482,73 @@
 
         // Editar SLA
         async function editSLA(slaId) {
-            // Implementar modal de edição ou redirecionar para formulário de edição
-            alert('Funcionalidade de edição será implementada em breve');
+            try {
+                // Buscar dados do SLA
+                const response = await fetch(`/api/v1/sla`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar SLA');
+                }
+                
+                const slas = await response.json();
+                const sla = slas.find(s => s.id === parseInt(slaId));
+                
+                if (!sla) {
+                    showAlert('SLA não encontrado', 'danger');
+                    return;
+                }
+                
+                // Preencher formulário com dados do SLA
+                document.getElementById('slaIdEdit').value = sla.id;
+                document.getElementById('setorSelect').value = sla.setorId;
+                document.getElementById('diasSLA').value = sla.diasSLA;
+                document.getElementById('descricaoSLA').value = sla.descricao || '';
+                
+                // Desabilitar campo de setor durante edição
+                document.getElementById('setorSelect').disabled = true;
+                document.getElementById('setorEditInfo').style.display = 'block';
+                
+                // Atualizar título do formulário
+                document.getElementById('formTitle').innerHTML = `
+                    <i class="fas fa-edit me-2"></i>Editando SLA - ${sla.setor.nome}
+                `;
+                
+                // Ocultar botão salvar normal e mostrar botões de edição
+                document.getElementById('submitBtn').style.display = 'none';
+                document.getElementById('editButtonsRow').style.display = 'block';
+                
+                // Scroll suave até o formulário
+                document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+            } catch (error) {
+                console.error('Erro ao buscar SLA:', error);
+                showAlert('Erro ao carregar dados do SLA para edição', 'danger');
+            }
+        }
+        
+        // Cancelar edição
+        function cancelEdit() {
+            // Limpar formulário
+            document.getElementById('slaForm').reset();
+            document.getElementById('slaIdEdit').value = '';
+            document.getElementById('diasSLA').value = '3';
+            
+            // Habilitar campo de setor
+            document.getElementById('setorSelect').disabled = false;
+            document.getElementById('setorEditInfo').style.display = 'none';
+            
+            // Restaurar título do formulário
+            document.getElementById('formTitle').innerHTML = `
+                <i class="fas fa-cog me-2"></i>Configurar SLA para Setor
+            `;
+            
+            // Ocultar botões de edição e mostrar botão salvar normal
+            document.getElementById('editButtonsRow').style.display = 'none';
+            document.getElementById('submitBtn').style.display = 'block';
         }
 
         // Deletar SLA
@@ -519,6 +614,11 @@
                 loadSLAs();
                 document.getElementById('slaForm').addEventListener('submit', saveSLA);
                 document.getElementById('logout-btn').addEventListener('click', logout);
+                document.getElementById('cancelBtn').addEventListener('click', cancelEdit);
+                document.getElementById('submitBtnEdit').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    document.getElementById('slaForm').dispatchEvent(new Event('submit'));
+                });
                 
                 // Event listeners para botões de SLA (delegação de eventos)
                 document.addEventListener('click', function(e) {
