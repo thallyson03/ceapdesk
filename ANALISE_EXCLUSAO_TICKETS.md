@@ -454,3 +454,4 @@ As rotas existentes de listagem já funcionarão automaticamente com soft delete
 **Data da Análise:** Janeiro 2025  
 **Status:** ✅ Aprovado para implementação
 
+

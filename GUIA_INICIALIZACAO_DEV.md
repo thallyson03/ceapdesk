@@ -510,3 +510,4 @@ psql -U postgres -d sistema_tickets_dev -c "SELECT version();"
 **Data:** Janeiro 2025  
 **Versão:** 1.0.0
 
+

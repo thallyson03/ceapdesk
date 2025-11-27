@@ -250,3 +250,4 @@ npx sequelize-cli db:migrate
 **Data:** Janeiro 2025  
 **Status:** ✅ Correções implementadas
 
+

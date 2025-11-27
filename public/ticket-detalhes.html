@@ -647,6 +647,34 @@
             font-size: 0.9rem;
             margin: 0;
         }
+        
+        /* Estilos para descrição truncada */
+        .descricao-truncada {
+            transition: all 0.3s ease;
+            word-break: break-word;
+        }
+        
+        .descricao-truncada:hover {
+            color: #0f6d55 !important;
+            text-decoration: underline !important;
+        }
+        
+        /* Modal de descrição */
+        .modal-descricao-body {
+            max-height: 60vh;
+            overflow-y: auto;
+            padding: 1.5rem;
+            line-height: 1.8;
+            color: #495057;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .modal-header-green {
+            background: linear-gradient(135deg, #0f6d55 0%, #149070 50%, #1bb089 100%);
+            color: white;
+            border: none;
+        }
     </style>
 </head>
 <body>
@@ -711,7 +739,7 @@
                             </div>
                             <div class="mt-2">
                                 <small class="text-muted">Descrição:</small>
-                                <p class="card-text mb-0 small" id="ticket-descricao"></p>
+                                <p class="card-text mb-0 small descricao-truncada" id="ticket-descricao"></p>
                             </div>
                             <div class="row g-2 mt-2">
                                 <div class="col-6">
@@ -829,6 +857,26 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para exibir descrição completa -->
+    <div class="modal fade" id="descricaoModal" tabindex="-1" aria-labelledby="descricaoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header modal-header-green">
+                    <h5 class="modal-title" id="descricaoModalLabel">
+                        <i class="fas fa-file-alt me-2"></i>Descrição Completa do Ticket
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body modal-descricao-body" id="descricaoModalBody">
+                    <!-- Conteúdo será preenchido via JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                 </div>
             </div>
         </div>
@@ -1161,7 +1209,41 @@
             
             const renderTicketDetails = (ticket) => {
                 ticketTitulo.textContent = `#${String(ticket.id).padStart(4, '0')} - ${ticket.titulo}`;
-                ticketDescricao.textContent = ticket.descricao;
+                
+                // Truncar descrição e tornar clicável
+                const descricaoCompleta = ticket.descricao || 'Sem descrição';
+                const maxLength = 100; // Número máximo de caracteres a exibir
+                
+                // Sempre armazenar a descrição completa
+                ticketDescricao.setAttribute('data-descricao-completa', descricaoCompleta);
+                
+                if (descricaoCompleta.length > maxLength) {
+                    const descricaoTruncada = descricaoCompleta.substring(0, maxLength) + '...';
+                    ticketDescricao.textContent = descricaoTruncada;
+                    // Tornar clicável apenas se houver descrição e for maior que maxLength
+                    ticketDescricao.style.cursor = 'pointer';
+                    ticketDescricao.style.color = '#149070';
+                    ticketDescricao.style.textDecoration = 'underline';
+                    ticketDescricao.setAttribute('data-bs-toggle', 'modal');
+                    ticketDescricao.setAttribute('data-bs-target', '#descricaoModal');
+                } else {
+                    ticketDescricao.textContent = descricaoCompleta;
+                    // Tornar clicável mesmo para descrições menores (para melhor visualização no modal)
+                    if (descricaoCompleta !== 'Sem descrição' && descricaoCompleta.trim().length > 0) {
+                        ticketDescricao.style.cursor = 'pointer';
+                        ticketDescricao.style.color = '#149070';
+                        ticketDescricao.style.textDecoration = 'underline';
+                        ticketDescricao.setAttribute('data-bs-toggle', 'modal');
+                        ticketDescricao.setAttribute('data-bs-target', '#descricaoModal');
+                    } else {
+                        ticketDescricao.style.cursor = 'default';
+                        ticketDescricao.style.color = '';
+                        ticketDescricao.style.textDecoration = 'none';
+                        ticketDescricao.removeAttribute('data-bs-toggle');
+                        ticketDescricao.removeAttribute('data-bs-target');
+                    }
+                }
+                
                 ticketCriador.textContent = ticket.solicitante || 'Não informado';
                 ticketDataCriacao.textContent = new Date(ticket.createdAt).toLocaleString();
                 
@@ -1478,6 +1560,18 @@
                 }
             });
         
+            // Event listener para atualizar o modal quando abrir
+            const descricaoModal = document.getElementById('descricaoModal');
+            if (descricaoModal) {
+                descricaoModal.addEventListener('show.bs.modal', function () {
+                    const descricaoCompleta = ticketDescricao.getAttribute('data-descricao-completa') || ticketDescricao.textContent;
+                    const descricaoModalBody = document.getElementById('descricaoModalBody');
+                    if (descricaoModalBody) {
+                        descricaoModalBody.textContent = descricaoCompleta;
+                    }
+                });
+            }
+            
             fetchTicketDetails();
         });
     </script>

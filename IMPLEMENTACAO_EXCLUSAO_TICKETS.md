@@ -195,3 +195,4 @@ GET /api/v1/tickets/deleted?page=1&limit=10&search=termo
 **Data da Implementação:** Janeiro 2025  
 **Versão:** 1.0.0
 
+
