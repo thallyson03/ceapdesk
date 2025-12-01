@@ -251,3 +251,5 @@ npx sequelize-cli db:migrate
 **Status:** ✅ Correções implementadas
 
 
+
+

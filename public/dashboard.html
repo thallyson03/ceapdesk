@@ -63,6 +63,76 @@
             padding: 0.5em 0.75em;
             font-weight: 500;
         }
+
+        /* Cabeçalho do card do ticket (título + data) */
+        .ticket-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .ticket-header-title {
+            flex: 1 1 auto;
+            min-width: 0; /* permite o texto ser truncado corretamente */
+        }
+
+        .ticket-date {
+            flex-shrink: 0;
+            white-space: nowrap;
+            font-size: 0.8rem;
+            color: #9a9a9a;
+        }
+
+        /* Estilos do bloco de filtros */
+        .filters-card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .filters-card .card-body {
+            padding: 1rem 1.25rem 1.25rem;
+        }
+
+        .filters-row {
+            align-items: center;
+        }
+
+        .filters-row .form-control,
+        .filters-row .form-select {
+            border-radius: 999px;
+            font-size: 0.9rem;
+        }
+
+        .filters-row .form-label {
+            display: block;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #6c757d;
+        }
+
+        .filters-row .input-group-text {
+            border-radius: 999px 0 0 999px;
+            background-color: #f5f7fb;
+            border-right: 0;
+        }
+
+        .filters-row .input-group .form-control {
+            border-left: 0;
+        }
+
+        .filters-row .btn {
+            border-radius: 999px;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .filters-row > div {
+                margin-bottom: 0.25rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -188,21 +258,23 @@
                 </div>
             </div>
         
-        <div class="card mb-4">
+        <div class="card mb-4 filters-card">
             <div class="card-body">
                 <h6 class="card-title mb-3">
                     <i class="fas fa-filter me-2"></i>Filtros
                 </h6>
-                <div class="row g-3">
-                    <div class="col-md-6">
+                <div class="row g-3 filters-row">
+                    <div class="col-md-3 col-12">
+                        <label for="search-input" class="form-label mb-1 small text-muted">Buscar por título ou descrição</label>
                         <div class="input-group">
                             <span class="input-group-text">
                                 <i class="fas fa-search"></i>
                             </span>
-                            <input type="text" id="search-input" class="form-control" placeholder="Buscar por título ou descrição...">
+                            <input type="text" id="search-input" class="form-control" placeholder="Digite um termo...">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2 col-6">
+                        <label for="status-filter" class="form-label mb-1 small text-muted">Status</label>
                         <select id="status-filter" class="form-select">
                             <option value="">Todos os Status</option>
                             <option value="aberto">Aberto</option>
@@ -210,10 +282,25 @@
                             <option value="fechado">Fechado</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <button type="button" class="btn btn-outline-secondary w-100" id="clear-filters-btn">
-                            <i class="fas fa-times me-1"></i>Limpar Filtros
-                        </button>
+                    <div class="col-md-3 col-6">
+                        <label for="setor-filter" class="form-label mb-1 small text-muted">Setor</label>
+                        <select id="setor-filter" class="form-select">
+                            <option value="">Todos os Setores</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <label for="usuario-filter" class="form-label mb-1 small text-muted">Usuário responsável</label>
+                        <select id="usuario-filter" class="form-select">
+                            <option value="">Todos os Usuários</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6 d-flex align-items-end">
+                        <div class="w-100">
+                            <label class="form-label mb-1 small text-muted d-block">&nbsp;</label>
+                            <button type="button" class="btn btn-outline-secondary w-100" id="clear-filters-btn">
+                                <i class="fas fa-times me-1"></i>Limpar Filtros
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -268,6 +355,9 @@
             window.location.href = '/login.html';
         });
 
+        // Carregar opções de filtros
+        loadSetoresFiltro();
+
         // Carregar tickets iniciais
         fetchTickets();
         
@@ -285,8 +375,14 @@
             }
         });
 
-        document.getElementById('search-input').addEventListener('input', fetchTickets);
-        document.getElementById('status-filter').addEventListener('change', fetchTickets);
+        document.getElementById('search-input').addEventListener('input', () => fetchTickets(1));
+        document.getElementById('status-filter').addEventListener('change', () => fetchTickets(1));
+        document.getElementById('setor-filter').addEventListener('change', (e) => {
+            const setor = e.target.value;
+            loadUsuariosFiltro(setor);
+            fetchTickets(1);
+        });
+        document.getElementById('usuario-filter').addEventListener('change', () => fetchTickets(1));
         
         // Event listener para download de relatório
         document.getElementById('download-report-btn').addEventListener('click', downloadReport);
@@ -295,6 +391,8 @@
         document.getElementById('clear-filters-btn').addEventListener('click', function() {
             document.getElementById('search-input').value = '';
             document.getElementById('status-filter').value = '';
+            document.getElementById('setor-filter').value = '';
+            document.getElementById('usuario-filter').innerHTML = '<option value=\"\">Todos os Usuários</option>';
             fetchTickets(1);
         });
         
@@ -313,10 +411,14 @@
 
         const search = document.getElementById('search-input').value;
         const status = document.getElementById('status-filter').value;
+        const setor = document.getElementById('setor-filter').value;
+        const responsavel = document.getElementById('usuario-filter').value;
         
         const queryParams = new URLSearchParams({ 
             search, 
-            status, 
+            status,
+            setor,
+            responsavel,
             page: page.toString(),
             limit: '10'
         }).toString();
@@ -363,12 +465,12 @@
             ticketCard.innerHTML = `
                 <div class="card h-100 ticket-card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title ticket-title mb-0">
+                        <div class="ticket-header mb-2">
+                            <h5 class="card-title ticket-title mb-0 ticket-header-title">
                                 <span class="ticket-id">#${String(ticket.id).padStart(4, '0')}</span>
                                 <span class="ticket-title-text">${ticket.titulo}</span>
                             </h5>
-                            <small class="text-muted">
+                            <small class="ticket-date text-muted">
                                 ${new Date(ticket.createdAt).toLocaleDateString()}
                             </small>
                         </div>
@@ -440,6 +542,68 @@
             case 'proximo_vencimento': return 'Próximo Vencimento';
             case 'vencido': return 'SLA Vencido';
             default: return 'SLA';
+        }
+    };
+
+    // Carregar setores disponíveis para o filtro
+    const loadSetoresFiltro = async () => {
+        const selectSetor = document.getElementById('setor-filter');
+        if (!selectSetor) return;
+
+        try {
+            const response = await fetch('/api/v1/tickets/setores-disponiveis', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) return;
+
+            const setores = await response.json();
+            selectSetor.innerHTML = '<option value=\"\">Todos os Setores</option>';
+
+            setores.forEach(setor => {
+                const option = document.createElement('option');
+                option.value = setor.nome;
+                option.textContent = setor.nome;
+                selectSetor.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Erro ao carregar setores para filtro:', error);
+        }
+    };
+
+    // Carregar usuários disponíveis para o filtro, baseado no setor selecionado
+    const loadUsuariosFiltro = async (setor) => {
+        const selectUsuario = document.getElementById('usuario-filter');
+        if (!selectUsuario) return;
+
+        // Sempre reseta as opções
+        selectUsuario.innerHTML = '<option value=\"\">Todos os Usuários</option>';
+
+        if (!setor) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/v1/users/setor/${encodeURIComponent(setor)}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) return;
+
+            const usuarios = await response.json();
+
+            usuarios.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = user.username;
+                selectUsuario.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Erro ao carregar usuários para filtro:', error);
         }
     };
 

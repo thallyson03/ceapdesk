@@ -231,7 +231,7 @@ router.get('/setores-disponiveis', async (req, res) => {
 // Rota para obter todos os tickets com filtros de busca, status e paginação
 router.get('/', async (req, res) => {
     try {
-        const { search, status, startDate, endDate } = req.query;
+        const { search, status, startDate, endDate, responsavel } = req.query;
         let { page = 1, limit = 10 } = req.query;
 
         // Garantir que page e limit sejam números válidos para evitar OFFSET NaN
@@ -290,6 +290,9 @@ router.get('/', async (req, res) => {
         }
         if (status) {
             whereCondition.status = status;
+        }
+        if (responsavel) {
+            whereCondition.responsavel = responsavel;
         }
         if (req.query.prioridade) {
             whereCondition.prioridade = req.query.prioridade;
