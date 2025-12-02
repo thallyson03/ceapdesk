@@ -354,6 +354,10 @@ router.get('/sla/alertas', async (req, res) => {
         let whereCondition = {
             statusSLA: {
                 [Op.in]: ['vencido', 'proximo_vencimento']
+            },
+            // Excluir tickets fechados das notificações
+            status: {
+                [Op.ne]: 'fechado'
             }
         };
         
