@@ -1127,7 +1127,7 @@ Content-Type: application/json
                 </div>
                 
                 <div class="success-box">
-                    <strong>⏰ Duração do Token:</strong> 6 meses (180 dias) - Ideal para sistemas 24/7
+                    <strong>⏰ Duração do Token:</strong> 1 ano (365 dias) - Ideal para sistemas 24/7 com baixa rotatividade de usuários
                 </div>
             </div>
         </div>
@@ -1165,6 +1165,28 @@ Content-Type: application/json
                 <p><strong>Descrição:</strong> Atualizar dados de um usuário (apenas admin)</p>
                 <span class="status-badge status-200">200 OK</span>
                 <span class="status-badge status-404">404 Not Found</span>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/users/setor/:setor</span>
+                </div>
+                <p><strong>Descrição:</strong> Listar usuários vinculados a um setor específico (usado pelo filtro em cascata de Usuário no dashboard).</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-401">401 Unauthorized</span>
+                <span class="status-badge status-403">403 Forbidden</span>
+                
+                <h5>Parâmetros de Rota:</h5>
+                <ul>
+                    <li><code>setor</code> (string, obrigatório): Nome do setor (exatamente como cadastrado no sistema).</li>
+                </ul>
+                
+                <h5>Regras de Acesso:</h5>
+                <ul>
+                    <li><strong>Admin:</strong> pode consultar usuários de qualquer setor.</li>
+                    <li><strong>Usuário comum:</strong> só pode consultar setores aos quais ele mesmo pertence.</li>
+                </ul>
             </div>
 
             <div class="endpoint-card">
@@ -1258,6 +1280,23 @@ Content-Type: application/json
                     <li><code>prioridade</code> (string, opcional): Filtrar por prioridade</li>
                     <li><code>setor</code> (string, opcional): Filtrar por setor</li>
                     <li><code>search</code> (string, opcional): Buscar por título ou descrição</li>
+                    <li><code>responsavel</code> (string, opcional): Filtrar pelos tickets atribuídos a um usuário específico (responsável)</li>
+                </ul>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="d-flex align-items-center mb-3">
+                    <span class="method-badge method-get">GET</span>
+                    <span class="endpoint-url">/api/v1/tickets/setores-disponiveis</span>
+                </div>
+                <p><strong>Descrição:</strong> Listar os setores que o usuário logado pode utilizar como filtro no dashboard.</p>
+                <span class="status-badge status-200">200 OK</span>
+                <span class="status-badge status-401">401 Unauthorized</span>
+                
+                <h5>Comportamento:</h5>
+                <ul>
+                    <li><strong>Admin:</strong> recebe todos os setores cadastrados.</li>
+                    <li><strong>Usuário comum:</strong> recebe apenas os setores aos quais está vinculado.</li>
                 </ul>
             </div>
 
