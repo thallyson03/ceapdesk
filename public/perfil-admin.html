@@ -323,6 +323,40 @@
                 <p class="text-muted">Aguarde enquanto buscamos as informações</p>
             </div>
         </div>
+
+        <!-- Sessões ativas (visão exclusiva admin) -->
+        <div class="mt-5">
+            <h3 class="mb-3">
+                <i class="fas fa-user-clock me-2 text-success"></i>
+                Sessões de Usuários Ativas
+            </h3>
+            <p class="text-muted mb-3">
+                Visualize em tempo real quais usuários estão com sessão ativa no sistema.
+            </p>
+            <div class="card user-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-signal me-2 text-success"></i>
+                            Usuários Online
+                        </h5>
+                        <button id="refresh-sessions-btn" class="btn btn-sm btn-outline-success">
+                            <i class="fas fa-sync-alt me-1"></i>Atualizar
+                        </button>
+                    </div>
+                    <div id="sessions-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <h6>Carregando sessões ativas...</h6>
+                        </div>
+                    </div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Esta visão é exclusiva de administradores.
+                    </small>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal de Edição -->
@@ -459,11 +493,26 @@
             }
 
             fetchUsers();
+            fetchActiveSessions();
         });
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            window.location.href = '/login.html';
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            const token = localStorage.getItem('token');
+            try {
+                if (token) {
+                    await fetch('/api/v1/users/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Erro ao chamar logout na API:', e);
+            } finally {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            }
         });
 
         const fetchUsers = async () => {
@@ -494,6 +543,107 @@
                     </div>
                 `;
             }
+        };
+
+        // Buscar sessões ativas
+        const fetchActiveSessions = async () => {
+            const container = document.getElementById('sessions-container');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <h6>Carregando sessões ativas...</h6>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('/api/v1/users/sessions/active', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error('Erro ao buscar sessões ativas.');
+                }
+
+                const sessions = await response.json();
+                renderSessions(sessions);
+            } catch (error) {
+                console.error('Erro ao buscar sessões ativas:', error);
+                container.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Erro ao carregar sessões ativas.
+                    </div>
+                `;
+            }
+        };
+
+        // Renderizar sessões ativas
+        const renderSessions = (sessions) => {
+            const container = document.getElementById('sessions-container');
+            if (!container) return;
+
+            if (!sessions || sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state p-3">
+                        <i class="fas fa-user-slash"></i>
+                        <h6>Nenhuma sessão ativa encontrada</h6>
+                        <p class="text-muted mb-0">Nenhum usuário está conectado neste momento.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const rows = sessions.map((s) => {
+                const loginAt = s.loginAt ? new Date(s.loginAt) : null;
+                const lastActivityAt = s.lastActivityAt ? new Date(s.lastActivityAt) : null;
+                const loginStr = loginAt ? loginAt.toLocaleString('pt-BR') : '-';
+                const lastStr = lastActivityAt ? lastActivityAt.toLocaleString('pt-BR') : '-';
+                const ip = s.ip || 'N/D';
+                const ua = s.userAgent ? s.userAgent.substring(0, 80) + (s.userAgent.length > 80 ? '...' : '') : 'N/D';
+
+                return `
+                    <tr>
+                        <td><i class="fas fa-user-circle me-1 text-primary"></i>${s.username}</td>
+                        <td>${ip}</td>
+                        <td>${loginStr}</td>
+                        <td>${lastStr}</td>
+                        <td>
+                            <span class="badge bg-success">
+                                <i class="fas fa-circle me-1"></i>Ativa
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>IP</th>
+                                <th>Login em</th>
+                                <th>Última atividade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                    </table>
+                </div>
+            `;
         };
 
         const updateStats = (users) => {
@@ -590,6 +740,11 @@
                 });
             });
         };
+
+        // Botão de atualizar sessões
+        document.getElementById('refresh-sessions-btn').addEventListener('click', () => {
+            fetchActiveSessions();
+        });
 
         document.getElementById('save-user-changes-btn').addEventListener('click', async () => {
             const userId = document.getElementById('edit-user-id').value;

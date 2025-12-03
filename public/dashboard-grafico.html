@@ -803,9 +803,23 @@
             });
         });
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            window.location.href = '/login.html';
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            const tokenLogout = localStorage.getItem('token');
+            try {
+                if (tokenLogout) {
+                    await fetch('/api/v1/users/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${tokenLogout}`
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Erro ao chamar logout na API:', e);
+            } finally {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -350,9 +350,23 @@
         // Carregar alertas de SLA
         loadSLAAlerts();
         
-        logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('token');
-            window.location.href = '/login.html';
+        logoutBtn.addEventListener('click', async () => {
+            const tokenLogout = localStorage.getItem('token');
+            try {
+                if (tokenLogout) {
+                    await fetch('/api/v1/users/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${tokenLogout}`
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Erro ao chamar logout na API:', e);
+            } finally {
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            }
         });
 
         // Carregar opções de filtros

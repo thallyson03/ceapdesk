@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config');
+const { UserSession } = require('../models');
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
@@ -47,6 +48,16 @@ const authMiddleware = (req, res, next) => {
         user.ipAddress = req.ip;
         
         req.user = user;
+
+        // Atualizar última atividade da sessão (best-effort, não bloqueia requisição)
+        try {
+            await UserSession.update(
+                { lastActivityAt: new Date() },
+                { where: { username: user.username, active: true } }
+            );
+        } catch (sessionError) {
+            console.error('Erro ao atualizar última atividade da sessão:', sessionError.message);
+        }
         
         // Log de acesso bem-sucedido (apenas para rotas sensíveis)
         if (req.path.includes('/admin') || req.path.includes('/reports') || req.path.includes('/analytics')) {

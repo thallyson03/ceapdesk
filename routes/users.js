@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { User, Setor, UserSetor } = require('../models');
+const { User, Setor, UserSetor, UserSession } = require('../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { authMiddleware, adminMiddleware } = require('../middleware/auth');
@@ -426,8 +426,30 @@ router.post('/login', loginValidations, async (req, res) => {
             { expiresIn: config.JWT_EXPIRES_IN }
         );
 
-        // Login processado silenciosamente
+        // Registrar / atualizar sessão do usuário
+        try {
+            // Finalizar sessões ativas anteriores do mesmo usuário
+            await UserSession.update(
+                { active: false, logoutAt: new Date() },
+                { where: { username: user.username, active: true } }
+            );
 
+            // Criar nova sessão
+            await UserSession.create({
+                userId: user.id,
+                username: user.username,
+                ip: req.ip,
+                userAgent: req.headers['user-agent'] || null,
+                loginAt: new Date(),
+                lastActivityAt: new Date(),
+                active: true
+            });
+        } catch (sessionError) {
+            console.error('Erro ao registrar sessão do usuário:', sessionError);
+            // Não bloqueia o login se o log de sessão falhar
+        }
+
+        // Login bem-sucedido
         res.json({ token });
     } catch (error) {
         console.error('Erro no login:', error);
@@ -463,8 +485,6 @@ router.post('/reset-password', async (req, res) => {
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });
-
-
 
 // Rota para atualizar usuário (apenas admin)
 router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
@@ -554,6 +574,62 @@ router.put('/:id', authMiddleware, adminMiddleware, async (req, res) => {
         res.status(200).json(updatedUser);
     } catch (error) {
         console.error('Erro ao atualizar usuário:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para obter informações do usuário logado (verificar se está autenticado)
+router.get('/me', authMiddleware, async (req, res) => {
+    try {
+        res.status(200).json({
+            id: req.user.id,
+            username: req.user.username,
+            role: req.user.role,
+            setores: req.user.setores || [],
+            setoresNomes: req.user.setoresNomes || [],
+            lastAccess: req.user.lastAccess,
+            ipAddress: req.user.ipAddress
+        });
+    } catch (error) {
+        console.error('Erro ao obter usuário logado:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota de logout - encerra sessões ativas do usuário autenticado
+router.post('/logout', authMiddleware, async (req, res) => {
+    try {
+        const username = req.user.username;
+
+        await UserSession.update(
+            { active: false, logoutAt: new Date() },
+            { where: { username, active: true } }
+        );
+
+        res.status(200).json({ message: 'Logout realizado com sucesso.' });
+    } catch (error) {
+        console.error('Erro ao realizar logout:', error);
+        res.status(500).json({ error: 'Erro interno do servidor.' });
+    }
+});
+
+// Rota para listar sessões ativas (apenas admin)
+router.get('/sessions/active', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        // Considerar apenas sessões ativas com atividade nos últimos 30 minutos
+        const THIRTY_MINUTES_AGO = new Date(Date.now() - 30 * 60 * 1000);
+
+        const sessions = await UserSession.findAll({
+            where: { 
+                active: true,
+                lastActivityAt: { [Op.gte]: THIRTY_MINUTES_AGO }
+            },
+            order: [['lastActivityAt', 'DESC']]
+        });
+
+        res.status(200).json(sessions);
+    } catch (error) {
+        console.error('Erro ao listar sessões ativas:', error);
         res.status(500).json({ error: 'Erro interno do servidor.' });
     }
 });
